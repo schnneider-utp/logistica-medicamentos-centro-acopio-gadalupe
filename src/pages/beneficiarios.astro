@@ -1,0 +1,336 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+const beneficiarios = [
+  { id: 1, nombre: 'María López García', celular: '300 123 4567', direccion: 'Calle 45 #12-34, Barrio San José', entregas: 5, ultimoMedicamento: 'Paracetamol 500mg', fechaUltima: '2026-08-20' },
+  { id: 2, nombre: 'Carlos Ruiz Martínez', celular: '310 987 6543', direccion: 'Avenida 8 #23-56, Centro', entregas: 3, ultimoMedicamento: 'Losartán 50mg', fechaUltima: '2026-08-18' },
+  { id: 3, nombre: 'Ana García Vásquez', celular: '320 456 7890', direccion: 'Carrera 15 #67-12, La Esperanza', entregas: 8, ultimoMedicamento: 'Metformina 850mg', fechaUltima: '2026-08-22' },
+  { id: 4, nombre: 'Pedro Sánchez Moreno', celular: '301 234 5678', direccion: 'Calle 78 #45-90, Villa Nueva', entregas: 2, ultimoMedicamento: 'Amoxicilina 250mg', fechaUltima: '2026-08-15' },
+  { id: 5, nombre: 'Lucía Fernanda Rojas', celular: '315 678 1234', direccion: 'Diagonal 23 #89-01, Los Pinos', entregas: 6, ultimoMedicamento: 'Ibuprofeno 400mg', fechaUltima: '2026-08-23' },
+  { id: 6, nombre: 'Roberto Díaz Herrera', celular: '318 345 6789', direccion: 'Transversal 5 #34-67, El Carmen', entregas: 1, ultimoMedicamento: 'Omeprazol 20mg', fechaUltima: '2026-08-10' },
+];
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+---
+
+<Layout title="Beneficiarios | Centro de Acopio Guadalupe">
+  <Navbar />
+
+  <main class="main-content">
+    <div class="container">
+      <div class="page-header animate-fade-in-up">
+        <div class="header-top">
+          <div>
+            <h1>👥 Beneficiarios</h1>
+            <p>Directorio de personas que reciben medicamentos del centro de acopio</p>
+          </div>
+          <button class="btn btn-primary">
+            <span>+</span> Nuevo Beneficiario
+          </button>
+        </div>
+      </div>
+
+      <!-- BÚSQUEDA -->
+      <div class="search-section animate-fade-in-up delay-1">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Buscar por nombre o dirección..." class="form-input search-input" />
+        </div>
+      </div>
+
+      <!-- ESTADÍSTICAS RÁPIDAS -->
+      <div class="quick-stats animate-fade-in-up delay-2">
+        <div class="quick-stat">
+          <span class="quick-stat-value">156</span>
+          <span class="quick-stat-label">Total Beneficiarios</span>
+        </div>
+        <div class="quick-stat">
+          <span class="quick-stat-value">42</span>
+          <span class="quick-stat-label">Activos (últimos 30 días)</span>
+        </div>
+        <div class="quick-stat">
+          <span class="quick-stat-value">834</span>
+          <span class="quick-stat-label">Entregas Totales</span>
+        </div>
+      </div>
+
+      <!-- GRID DE TARJETAS -->
+      <div class="beneficiarios-grid">
+        {beneficiarios.map((b, i) => (
+          <div class={`beneficiary-card animate-on-scroll`} style={`transition-delay: ${i * 0.08}s`}>
+            <div class="card-header">
+              <div class="avatar">{b.nombre.charAt(0)}</div>
+              <div class="card-title">
+                <h3>{b.nombre}</h3>
+                <span class="card-id">ID: #{b.id.toString().padStart(4, '0')}</span>
+              </div>
+              <button class="btn btn-ghost btn-sm card-menu">⋯</button>
+            </div>
+
+            <div class="card-body">
+              <div class="info-row">
+                <span class="info-icon">📱</span>
+                <span>{b.celular}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-icon">📍</span>
+                <span>{b.direccion}</span>
+              </div>
+            </div>
+
+            <div class="card-footer">
+              <div class="footer-stat">
+                <span class="footer-stat-value">{b.entregas}</span>
+                <span class="footer-stat-label">entregas</span>
+              </div>
+              <div class="footer-info">
+                <span class="footer-med">{b.ultimoMedicamento}</span>
+                <span class="footer-date">{formatDate(b.fechaUltima)}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .main-content {
+    padding-top: 72px;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  .page-header {
+    padding: 40px 0 24px;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+
+  .page-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+  }
+
+  .search-section {
+    margin-bottom: 24px;
+  }
+
+  .search-box {
+    position: relative;
+    max-width: 400px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+  }
+
+  .search-input {
+    padding-left: 42px !important;
+    width: 100%;
+  }
+
+  /* QUICK STATS */
+  .quick-stats {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .quick-stat {
+    padding: 16px 24px;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .quick-stat-value {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--green-primary);
+  }
+
+  .quick-stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  /* GRID */
+  .beneficiarios-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  .beneficiary-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .beneficiary-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+    border-color: var(--green-light);
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px 20px 0;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--green-primary), var(--green-light));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+
+  .card-title {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .card-title h3 {
+    font-size: 1rem;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-id {
+    font-size: 0.75rem;
+    color: var(--text-light);
+  }
+
+  .card-menu {
+    font-size: 1.2rem;
+    padding: 4px 8px !important;
+  }
+
+  .card-body {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .info-icon {
+    flex-shrink: 0;
+    font-size: 0.9rem;
+  }
+
+  .card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 14px 20px;
+    background: var(--surface-hover);
+    border-top: 1px solid var(--border-light);
+  }
+
+  .footer-stat {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+  }
+
+  .footer-stat-value {
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--green-primary);
+  }
+
+  .footer-stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .footer-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  .footer-med {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--blue);
+  }
+
+  .footer-date {
+    font-size: 0.7rem;
+    color: var(--text-light);
+  }
+
+  @media (max-width: 1024px) {
+    .beneficiarios-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .header-top {
+      flex-direction: column;
+    }
+
+    .quick-stats {
+      flex-direction: column;
+    }
+
+    .beneficiarios-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

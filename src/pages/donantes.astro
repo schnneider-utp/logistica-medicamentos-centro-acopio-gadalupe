@@ -1,0 +1,326 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+const donantes = [
+  { id: 1, nombre: 'Fundación Salud para Todos', celular: '300 111 2233', correo: 'contacto@fundsalud.org', donaciones: 12, tiposMedicamentos: 8, fechaUltima: '2026-08-22', totalTabletas: 1450 },
+  { id: 2, nombre: 'Cruz Roja - Capítulo Local', celular: '310 222 3344', correo: 'cruzroja@local.org', donaciones: 8, tiposMedicamentos: 6, fechaUltima: '2026-08-20', totalTabletas: 890 },
+  { id: 3, nombre: 'Juan Pérez Martínez', celular: '320 333 4455', correo: 'juan.perez@email.com', donaciones: 3, tiposMedicamentos: 2, fechaUltima: '2026-08-18', totalTabletas: 300 },
+  { id: 4, nombre: 'Farmacia Central', celular: '301 444 5566', correo: 'donaciones@farmcentral.com', donaciones: 15, tiposMedicamentos: 10, fechaUltima: '2026-08-23', totalTabletas: 2100 },
+  { id: 5, nombre: 'María López García', celular: '315 555 6677', correo: 'maria.lopez@email.com', donaciones: 2, tiposMedicamentos: 1, fechaUltima: '2026-08-15', totalTabletas: 90 },
+  { id: 6, nombre: 'Carlos Ruiz Martínez', celular: '318 666 7788', correo: null, donaciones: 1, tiposMedicamentos: 1, fechaUltima: '2026-08-10', totalTabletas: 45 },
+];
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+---
+
+<Layout title="Donantes | Centro de Acopio Guadalupe">
+  <Navbar />
+
+  <main class="main-content">
+    <div class="container">
+      <div class="page-header animate-fade-in-up">
+        <div class="header-top">
+          <div>
+            <h1>🤝 Donantes</h1>
+            <p>Personas y organizaciones que contribuyen con medicamentos al centro de acopio</p>
+          </div>
+          <button class="btn btn-primary">
+            <span>+</span> Nuevo Donante
+          </button>
+        </div>
+      </div>
+
+      <!-- BÚSQUEDA -->
+      <div class="search-section animate-fade-in-up delay-1">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Buscar por nombre o correo..." class="form-input search-input" />
+        </div>
+      </div>
+
+      <!-- RESUMEN -->
+      <div class="summary-banner animate-fade-in-up delay-2">
+        <div class="summary-item">
+          <span class="summary-icon">👥</span>
+          <div>
+            <span class="summary-value">89</span>
+            <span class="summary-label">Donantes Registrados</span>
+          </div>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-item">
+          <span class="summary-icon">📦</span>
+          <div>
+            <span class="summary-value">4,875</span>
+            <span class="summary-label">Tabletas Recibidas</span>
+          </div>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-item">
+          <span class="summary-icon">💊</span>
+          <div>
+            <span class="summary-value">24</span>
+            <span class="summary-label">Tipos de Medicamentos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLA DONANTES -->
+      <div class="table-container animate-fade-in-up delay-3">
+        <div class="table-scroll">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Donante</th>
+                <th>Contacto</th>
+                <th>Donaciones</th>
+                <th>Medicamentos</th>
+                <th>Total Tabletas</th>
+                <th>Última Donación</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {donantes.map((d, i) => (
+                <tr style={`animation: fadeInUp 0.4s ease-out ${i * 0.05}s both`}>
+                  <td>
+                    <div class="donor-cell">
+                      <div class="donor-avatar">{d.nombre.charAt(0)}</div>
+                      <div class="donor-info">
+                        <span class="donor-name">{d.nombre}</span>
+                        <span class="donor-id">ID: #{d.id.toString().padStart(4, '0')}</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="contact-cell">
+                      <span>📱 {d.celular}</span>
+                      {d.correo && <span class="correo">✉️ {d.correo}</span>}
+                    </div>
+                  </td>
+                  <td>
+                    <span class="donation-count">{d.donaciones}</span>
+                  </td>
+                  <td>{d.tiposMedicamentos} tipos</td>
+                  <td>
+                    <span class="tabletas-badge">{d.totalTabletas.toLocaleString('es-CO')}</span>
+                  </td>
+                  <td>{formatDate(d.fechaUltima)}</td>
+                  <td>
+                    <div class="actions-cell">
+                      <button class="btn btn-ghost btn-sm" title="Ver historial">📋</button>
+                      <button class="btn btn-ghost btn-sm" title="Editar">✏️</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .main-content {
+    padding-top: 72px;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  .page-header {
+    padding: 40px 0 24px;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+
+  .page-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+  }
+
+  .search-section {
+    margin-bottom: 24px;
+  }
+
+  .search-box {
+    position: relative;
+    max-width: 400px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+  }
+
+  .search-input {
+    padding-left: 42px !important;
+    width: 100%;
+  }
+
+  /* SUMMARY */
+  .summary-banner {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 24px 32px;
+    background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-primary) 100%);
+    border-radius: var(--radius-lg);
+    margin-bottom: 24px;
+    color: white;
+  }
+
+  .summary-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .summary-icon {
+    font-size: 1.8rem;
+    opacity: 0.9;
+  }
+
+  .summary-value {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .summary-label {
+    display: block;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-top: 2px;
+  }
+
+  .summary-divider {
+    width: 1px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* TABLA */
+  .table-scroll {
+    overflow-x: auto;
+  }
+
+  .donor-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .donor-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--green-primary), var(--blue));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .donor-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .donor-name {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .donor-id {
+    font-size: 0.75rem;
+    color: var(--text-light);
+  }
+
+  .contact-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .correo {
+    font-size: 0.8rem;
+    color: var(--blue);
+  }
+
+  .donation-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    padding: 4px 12px;
+    background: var(--blue-light);
+    color: var(--blue);
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .tabletas-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: var(--green-lighter);
+    color: var(--green-primary);
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.85rem;
+  }
+
+  .actions-cell {
+    display: flex;
+    gap: 4px;
+  }
+
+  @media (max-width: 768px) {
+    .header-top {
+      flex-direction: column;
+    }
+
+    .summary-banner {
+      flex-direction: column;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .summary-divider {
+      width: 60px;
+      height: 1px;
+    }
+  }
+</style>

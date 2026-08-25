@@ -1,0 +1,377 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+const medicamentos = [
+  { id: 1, generico: 'Paracetamol', comercial: 'Tylenol', concentracion: '500 mg', tipo: 'Tabletas', cantidad: 200, vencimiento: '2027-03-15', donante: 'Fundación Salud', estado: 'vigente' },
+  { id: 2, generico: 'Amoxicilina', comercial: 'Amoxil', concentracion: '250 mg', tipo: 'Cápsulas', cantidad: 150, vencimiento: '2026-12-20', donante: 'Cruz Roja', estado: 'vigente' },
+  { id: 3, generico: 'Ibuprofeno', comercial: 'Advil', concentracion: '400 mg', tipo: 'Tabletas', cantidad: 300, vencimiento: '2027-06-10', donante: 'Juan Pérez', estado: 'vigente' },
+  { id: 4, generico: 'Losartán', comercial: 'Cozaar', concentracion: '50 mg', tipo: 'Tabletas', cantidad: 80, vencimiento: '2026-09-05', donante: 'Fundación Salud', estado: 'por-vencer' },
+  { id: 5, generico: 'Metformina', comercial: 'Glucophage', concentracion: '850 mg', tipo: 'Tabletas', cantidad: 120, vencimiento: '2027-01-25', donante: 'Farmacia Central', estado: 'vigente' },
+  { id: 6, generico: 'Omeprazol', comercial: 'Losec', concentracion: '20 mg', tipo: 'Cápsulas', cantidad: 90, vencimiento: '2026-08-30', donante: 'María López', estado: 'vencido' },
+  { id: 7, generico: 'Azitromicina', comercial: 'Zithromax', concentracion: '500 mg', tipo: 'Tabletas', cantidad: 60, vencimiento: '2027-04-18', donante: 'Cruz Roja', estado: 'vigente' },
+  { id: 8, generico: 'Diclofenaco', comercial: 'Voltaren', concentracion: '100 mg', tipo: 'Tabletas', cantidad: 45, vencimiento: '2026-11-12', donante: 'Carlos Ruiz', estado: 'por-vencer' },
+];
+
+function getEstadoBadge(estado: string) {
+  switch(estado) {
+    case 'vigente': return { label: 'Vigente', class: 'badge-success' };
+    case 'por-vencer': return { label: 'Por Vencer', class: 'badge-warning' };
+    case 'vencido': return { label: 'Vencido', class: 'badge-danger' };
+    default: return { label: 'Desconocido', class: 'badge-info' };
+  }
+}
+
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+---
+
+<Layout title="Inventario | Centro de Acopio Guadalupe">
+  <Navbar />
+
+  <main class="main-content">
+    <div class="container">
+      <div class="page-header animate-fade-in-up">
+        <div class="header-top">
+          <div>
+            <h1>📋 Inventario de Medicamentos</h1>
+            <p>Consulta y administra el stock disponible en el centro de acopio</p>
+          </div>
+          <a href="/recibir" class="btn btn-primary">
+            <span>+</span> Agregar Medicamento
+          </a>
+        </div>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="filters-bar animate-fade-in-up delay-1">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Buscar por nombre genérico o comercial..." class="form-input search-input" />
+        </div>
+        <div class="filter-group">
+          <select class="form-select">
+            <option value="">Todos los estados</option>
+            <option value="vigente">Vigente</option>
+            <option value="por-vencer">Por Vencer</option>
+            <option value="vencido">Vencido</option>
+          </select>
+          <select class="form-select">
+            <option value="">Todos los tipos</option>
+            <option value="tabletas">Tabletas</option>
+            <option value="capsulas">Cápsulas</option>
+            <option value="frascos">Frascos</option>
+            <option value="sobres">Sobres</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- RESUMEN -->
+      <div class="summary-cards animate-fade-in-up delay-2">
+        <div class="summary-card">
+          <span class="summary-value">4,238</span>
+          <span class="summary-label">Total Unidades</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-value green">8</span>
+          <span class="summary-label">Lotes Activos</span>
+        </div>
+        <div class="summary-card warning">
+          <span class="summary-value">2</span>
+          <span class="summary-label">Por Vencer</span>
+        </div>
+        <div class="summary-card danger">
+          <span class="summary-value">1</span>
+          <span class="summary-label">Vencidos</span>
+        </div>
+      </div>
+
+      <!-- TABLA -->
+      <div class="table-container animate-fade-in-up delay-3">
+        <div class="table-scroll">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Medicamento</th>
+                <th>Concentración</th>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Vencimiento</th>
+                <th>Donante</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {medicamentos.map((med, i) => {
+                const badge = getEstadoBadge(med.estado);
+                return (
+                  <tr style={`animation: fadeInUp 0.4s ease-out ${i * 0.05}s both`}>
+                    <td>
+                      <div class="med-info">
+                        <span class="med-generico">{med.generico}</span>
+                        <span class="med-comercial">{med.comercial}</span>
+                      </div>
+                    </td>
+                    <td>{med.concentracion}</td>
+                    <td>{med.tipo}</td>
+                    <td>
+                      <span class="cantidad-badge">{med.cantidad}</span>
+                    </td>
+                    <td>
+                      <span class={med.estado === 'vencido' ? 'text-danger' : med.estado === 'por-vencer' ? 'text-warning' : ''}>
+                        {formatDate(med.vencimiento)}
+                      </span>
+                    </td>
+                    <td class="text-muted">{med.donante}</td>
+                    <td>
+                      <span class={`badge ${badge.class}`}>{badge.label}</span>
+                    </td>
+                    <td>
+                      <div class="actions-cell">
+                        <button class="btn btn-ghost btn-sm" title="Editar">✏️</button>
+                        <button class="btn btn-ghost btn-sm" title="Eliminar">🗑️</button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PAGINACIÓN -->
+      <div class="pagination animate-fade-in-up delay-4">
+        <span class="pagination-info">Mostrando 1-8 de 8 medicamentos</span>
+        <div class="pagination-btns">
+          <button class="btn btn-ghost btn-sm" disabled>← Anterior</button>
+          <button class="btn btn-primary btn-sm">1</button>
+          <button class="btn btn-ghost btn-sm" disabled>Siguiente →</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .main-content {
+    padding-top: 72px;
+    min-height: 100vh;
+  }
+
+  .page-header {
+    padding: 40px 0 24px;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+
+  .page-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+  }
+
+  /* FILTROS */
+  .filters-bar {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 280px;
+    position: relative;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1rem;
+    z-index: 1;
+  }
+
+  .search-input {
+    padding-left: 42px !important;
+    width: 100%;
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 12px;
+  }
+
+  .filter-group .form-select {
+    min-width: 160px;
+  }
+
+  /* RESUMEN */
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .summary-card {
+    padding: 20px;
+    background: var(--surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    text-align: center;
+  }
+
+  .summary-card.warning {
+    border-color: var(--warning);
+    background: var(--warning-light);
+  }
+
+  .summary-card.danger {
+    border-color: var(--danger);
+    background: var(--danger-light);
+  }
+
+  .summary-value {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--green-dark);
+    line-height: 1;
+  }
+
+  .summary-card.warning .summary-value {
+    color: var(--warning);
+  }
+
+  .summary-card.danger .summary-value {
+    color: var(--danger);
+  }
+
+  .summary-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* TABLA */
+  .table-scroll {
+    overflow-x: auto;
+  }
+
+  .med-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .med-generico {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .med-comercial {
+    font-size: 0.8rem;
+    color: var(--text-light);
+  }
+
+  .cantidad-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    padding: 4px 12px;
+    background: var(--green-lighter);
+    color: var(--green-primary);
+    border-radius: 100px;
+    font-weight: 700;
+    font-size: 0.9rem;
+  }
+
+  .text-danger {
+    color: var(--danger) !important;
+    font-weight: 600;
+  }
+
+  .text-warning {
+    color: var(--warning) !important;
+    font-weight: 600;
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  .actions-cell {
+    display: flex;
+    gap: 4px;
+  }
+
+  /* PAGINACIÓN */
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+  }
+
+  .pagination-info {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .pagination-btns {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .pagination-btns button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    .header-top {
+      flex-direction: column;
+    }
+
+    .filters-bar {
+      flex-direction: column;
+    }
+
+    .filter-group {
+      flex-direction: column;
+    }
+
+    .summary-cards {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pagination {
+      flex-direction: column;
+      gap: 12px;
+    }
+  }
+</style>

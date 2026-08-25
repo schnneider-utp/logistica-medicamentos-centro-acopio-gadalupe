@@ -1,0 +1,540 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+
+const medicamentosDisponibles = [
+  { id: 1, nombre: 'Paracetamol (Tylenol)', concentracion: '500 mg', tipo: 'Tabletas', disponible: 200 },
+  { id: 2, nombre: 'Amoxicilina (Amoxil)', concentracion: '250 mg', tipo: 'Cápsulas', disponible: 150 },
+  { id: 3, nombre: 'Ibuprofeno (Advil)', concentracion: '400 mg', tipo: 'Tabletas', disponible: 300 },
+  { id: 4, nombre: 'Losartán (Cozaar)', concentracion: '50 mg', tipo: 'Tabletas', disponible: 80 },
+  { id: 5, nombre: 'Metformina (Glucophage)', concentracion: '850 mg', tipo: 'Tabletas', disponible: 120 },
+];
+---
+
+<Layout title="Entregar Medicamento | Centro de Acopio Guadalupe">
+  <Navbar />
+
+  <main class="main-content">
+    <div class="container">
+      <div class="page-header animate-fade-in-up">
+        <h1>📤 Entregar Medicamento</h1>
+        <p>Procesa la entrega de medicamentos a un beneficiario con fórmula médica</p>
+      </div>
+
+      <div class="entrega-layout">
+        <!-- FORMULARIO BENEFICIARIO -->
+        <div class="form-section animate-slide-left">
+          <div class="form-card">
+            <div class="form-card-header">
+              <span class="form-card-icon">👤</span>
+              <div>
+                <h2>Datos del Beneficiario</h2>
+                <p>Información de la persona que recibe los medicamentos</p>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nombre completo *</label>
+              <input type="text" class="form-input" placeholder="Ej: María López García" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Dirección *</label>
+              <input type="text" class="form-input" placeholder="Ej: Calle 45 #12-34, Barrio San José" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Número de celular</label>
+              <input type="tel" class="form-input" placeholder="Ej: 300 123 4567" />
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div class="form-card-header" style="border-bottom: none; padding-bottom: 0; margin-bottom: 16px;">
+              <span class="form-card-icon">📋</span>
+              <div>
+                <h2>Fórmula Médica</h2>
+                <p>Adjunta foto de la receta médica (opcional)</p>
+              </div>
+            </div>
+
+            <div class="upload-mini">
+              <input type="file" accept=".jpg,.jpeg,.png,.pdf" />
+              <span>📄 Seleccionar archivo de fórmula médica</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- SELECCIÓN MEDICAMENTOS -->
+        <div class="meds-section animate-slide-right delay-2">
+          <div class="form-card">
+            <div class="form-card-header">
+              <span class="form-card-icon">💊</span>
+              <div>
+                <h2>Medicamentos a Entregar</h2>
+                <p>Selecciona y define la cantidad de cada medicamento</p>
+              </div>
+            </div>
+
+            <div class="meds-list">
+              {medicamentosDisponibles.map((med) => (
+                <div class="med-item">
+                  <div class="med-info">
+                    <span class="med-nombre">{med.nombre}</span>
+                    <span class="med-detail">{med.concentracion} · {med.tipo} · {med.disponible} disponibles</span>
+                  </div>
+                  <div class="med-qty">
+                    <label class="form-label" style="margin-bottom: 4px;">Tabletas a entregar</label>
+                    <div class="qty-input-group">
+                      <button class="qty-btn" onclick={`adjustQty(${med.id}, -1)`}>−</button>
+                      <input 
+                        type="number" 
+                        class="qty-input" 
+                        id={`qty-${med.id}`}
+                        min="0" 
+                        max={med.disponible}
+                        value="0"
+                      />
+                      <button class="qty-btn" onclick={`adjustQty(${med.id}, 1)`}>+</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div class="meds-summary">
+              <div class="summary-row">
+                <span>Total medicamentos seleccionados:</span>
+                <span class="summary-total" id="totalMeds">0</span>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn btn-ghost">Cancelar</button>
+              <button class="btn btn-primary btn-lg" onclick="confirmEntrega()">
+                ✅ Confirmar Entrega
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESUMEN MODAL -->
+      <div class="modal-overlay" id="confirmModal" style="display: none;">
+        <div class="modal-content animate-scale-in">
+          <div class="modal-header">
+            <h2>📋 Resumen de Entrega</h2>
+            <button class="modal-close" onclick="closeModal()">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="resumen-section">
+              <h3>Beneficiario</h3>
+              <p class="resumen-text">María López García</p>
+              <p class="resumen-text text-muted">Calle 45 #12-34, Barrio San José</p>
+            </div>
+            <div class="resumen-section">
+              <h3>Medicamentos</h3>
+              <div class="resumen-meds">
+                <div class="resumen-med">
+                  <span>Paracetamol 500mg</span>
+                  <span class="resumen-qty">× 20 tabletas</span>
+                </div>
+                <div class="resumen-med">
+                  <span>Ibuprofeno 400mg</span>
+                  <span class="resumen-qty">× 10 tabletas</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="processEntrega()">Confirmar y Procesar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<script>
+  function adjustQty(id: number, delta: number) {
+    const input = document.getElementById(`qty-${id}`) as HTMLInputElement;
+    if (!input) return;
+    let val = parseInt(input.value || '0') + delta;
+    val = Math.max(0, Math.min(val, parseInt(input.max || '999')));
+    input.value = val.toString();
+    updateTotal();
+  }
+
+  function updateTotal() {
+    let total = 0;
+    document.querySelectorAll('.qty-input').forEach((el) => {
+      total += parseInt((el as HTMLInputElement).value || '0');
+    });
+    const el = document.getElementById('totalMeds');
+    if (el) el.textContent = total.toString();
+  }
+
+  function confirmEntrega() {
+    const modal = document.getElementById('confirmModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      modal.style.animation = 'fadeIn 0.3s ease-out';
+    }
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('confirmModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function processEntrega() {
+    closeModal();
+    // Show success feedback
+    alert('¡Entrega procesada exitosamente!');
+  }
+
+  (window as any).adjustQty = adjustQty;
+  (window as any).confirmEntrega = confirmEntrega;
+  (window as any).closeModal = closeModal;
+  (window as any).processEntrega = processEntrega;
+</script>
+
+<style>
+  .main-content {
+    padding-top: 72px;
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  .page-header {
+    padding: 40px 0 24px;
+  }
+
+  .page-header h1 {
+    font-size: 1.8rem;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+
+  .page-header p {
+    color: var(--text-muted);
+    font-size: 1rem;
+  }
+
+  .entrega-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .form-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-md);
+    padding: 28px;
+  }
+
+  .form-card-header {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .form-card-icon {
+    font-size: 1.6rem;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--green-lighter);
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+  }
+
+  .form-card-header h2 {
+    font-size: 1.05rem;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .form-card-header p {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  .form-divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: 24px 0;
+  }
+
+  .upload-mini {
+    position: relative;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+  }
+
+  .upload-mini:hover {
+    border-color: var(--green-primary);
+    background: var(--green-lighter);
+  }
+
+  .upload-mini input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  /* MEDS */
+  .meds-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .med-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: var(--surface-hover);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    gap: 16px;
+  }
+
+  .med-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .med-nombre {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.95rem;
+  }
+
+  .med-detail {
+    font-size: 0.8rem;
+    color: var(--text-light);
+    margin-top: 2px;
+  }
+
+  .med-qty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+
+  .qty-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .qty-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--green-lighter);
+    color: var(--green-primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: all 0.2s;
+  }
+
+  .qty-btn:hover {
+    background: var(--green-primary);
+    color: white;
+  }
+
+  .qty-input {
+    width: 56px;
+    height: 36px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    font-weight: 700;
+    font-size: 1rem;
+    font-family: var(--font-display);
+    -moz-appearance: textfield;
+  }
+
+  .qty-input::-webkit-inner-spin-button,
+  .qty-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+  }
+
+  .qty-input:focus {
+    outline: none;
+    background: var(--green-lighter);
+  }
+
+  .meds-summary {
+    padding: 16px;
+    background: var(--green-lighter);
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+  }
+
+  .summary-total {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--green-primary);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-light);
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 24px;
+  }
+
+  .modal-content {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 480px;
+    overflow: hidden;
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-light);
+  }
+
+  .modal-header h2 {
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .modal-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: none;
+    color: var(--text-muted);
+    font-size: 1.1rem;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover {
+    background: var(--danger-light);
+    color: var(--danger);
+  }
+
+  .modal-body {
+    padding: 24px;
+  }
+
+  .resumen-section {
+    margin-bottom: 20px;
+  }
+
+  .resumen-section h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .resumen-text {
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .resumen-meds {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .resumen-med {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--surface-hover);
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+  }
+
+  .resumen-qty {
+    font-weight: 700;
+    color: var(--green-primary);
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 0.9rem;
+  }
+
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--border-light);
+    background: var(--surface-hover);
+  }
+
+  @media (max-width: 768px) {
+    .entrega-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

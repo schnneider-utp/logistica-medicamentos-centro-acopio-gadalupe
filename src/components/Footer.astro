@@ -1,0 +1,199 @@
+---
+---
+
+<footer class="footer">
+  <div class="footer-wave">
+    <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path d="M0,60 C360,120 720,0 1080,60 C1260,90 1380,80 1440,60 L1440,120 L0,120 Z" fill="var(--green-dark)"/>
+    </svg>
+  </div>
+  <div class="footer-content">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <span class="logo-icon">⚕️</span>
+            <div>
+              <span class="logo-name">Centro de Acopio</span>
+              <span class="logo-sub">Guadalupe</span>
+            </div>
+          </div>
+          <p class="footer-desc">
+            Gestión eficiente de donaciones, almacenamiento y distribución de medicamentos para nuestra comunidad.
+          </p>
+        </div>
+
+        <div class="footer-nav">
+          <h4>Navegación</h4>
+          <a href="/">Inicio</a>
+          <a href="/inventario">Inventario</a>
+          <a href="/recibir">Recibir Donación</a>
+          <a href="/entregar">Entregar Medicamento</a>
+        </div>
+
+        <div class="footer-nav">
+          <h4>Directorios</h4>
+          <a href="/beneficiarios">Beneficiarios</a>
+          <a href="/donantes">Donantes</a>
+        </div>
+
+        <div class="footer-contact">
+          <h4>Contacto</h4>
+          <div class="contact-item">
+            <span>📍</span>
+            <span>Guadalupe, Centro de Acopio</span>
+          </div>
+          <div class="contact-item">
+            <span>📞</span>
+            <span>Contactar al administrador</span>
+          </div>
+          <div class="contact-item">
+            <span>✉️</span>
+            <span>admin@centroacopio.org</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 Centro de Acopio Guadalupe. Todos los derechos reservados.</p>
+        <p class="footer-tagso">Sistema de Logística de Medicamentos</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    position: relative;
+    margin-top: 80px;
+  }
+
+  .footer-wave {
+    height: 80px;
+    overflow: hidden;
+  }
+
+  .footer-wave svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .footer-content {
+    background: var(--green-dark);
+    padding: 48px 0 24px;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+    gap: 40px;
+    margin-bottom: 40px;
+  }
+
+  .footer-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .logo-icon {
+    font-size: 1.8rem;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+  }
+
+  .logo-name {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: white;
+  }
+
+  .logo-sub {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 0.7rem;
+    color: var(--green-light);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .footer-desc {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    max-width: 300px;
+  }
+
+  .footer-nav h4,
+  .footer-contact h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+
+  .footer-nav a {
+    display: block;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.9rem;
+    padding: 4px 0;
+    transition: all 0.2s;
+  }
+
+  .footer-nav a:hover {
+    color: var(--green-light);
+    padding-left: 6px;
+  }
+
+  .contact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+  }
+
+  .footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-bottom p {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+  }
+
+  .footer-tagso {
+    color: rgba(255, 255, 255, 0.3) !important;
+    font-style: italic;
+  }
+
+  @media (max-width: 768px) {
+    .footer-grid {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    .footer-bottom {
+      flex-direction: column;
+      gap: 8px;
+      text-align: center;
+    }
+  }
+</style>
