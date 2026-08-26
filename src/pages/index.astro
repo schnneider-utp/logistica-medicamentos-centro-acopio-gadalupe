@@ -2,44 +2,81 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import prisma from '../lib/prisma';
+import { tiempoRelativo } from '../lib/utils';
+
+const [
+  totalMedicamentos,
+  totalEntregas,
+  totalBeneficiarios,
+  totalDonantes,
+  porVencer,
+  ultimosMedicamentos,
+  ultimasEntregas,
+] = await Promise.all([
+  prisma.medicamentos_inventario.aggregate({ _sum: { cantidad_disponible: true } }),
+  prisma.entregas.count(),
+  prisma.beneficiarios.count(),
+  prisma.donantes.count(),
+  prisma.medicamentos_inventario.count({
+    where: {
+      fecha_vencimiento: {
+        lte: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+        gte: new Date(),
+      },
+    },
+  }),
+  prisma.medicamentos_inventario.findMany({
+    take: 5,
+    orderBy: { creado_en: 'desc' },
+    include: { donante: { select: { nombre: true } } },
+  }),
+  prisma.entregas.findMany({
+    take: 5,
+    orderBy: { fecha_entrega: 'desc' },
+    include: {
+      beneficiario: { select: { nombre: true } },
+      detalles: {
+        include: {
+          medicamento: { select: { nombre_generico: true, concentracion: true } },
+        },
+      },
+    },
+  }),
+]);
+
+const stockDisponible = totalMedicamentos._sum.cantidad_disponible || 0;
+
+const recentActivity = [
+  ...ultimosMedicamentos.map(m => ({
+    tipo: 'entry' as const,
+    accion: 'Ingreso de lote',
+    detalle: `${m.nombre_generico} ${m.concentracion || ''} - ${m.cantidad_disponible} ${m.tipo_cantidad || 'unidades'}`,
+    fecha: m.creado_en,
+  })),
+  ...ultimasEntregas.map(e => ({
+    tipo: 'exit' as const,
+    accion: 'Entrega realizada',
+    detalle: e.detalles.length > 0
+      ? `${e.detalles[0].medicamento.nombre_generico} a ${e.beneficiario.nombre}`
+      : `Entrega a ${e.beneficiario.nombre}`,
+    fecha: e.fecha_entrega,
+  })),
+]
+  .sort((a, b) => b.fecha.getTime() - a.fecha.getTime())
+  .slice(0, 5);
 
 const stats = [
-  { label: 'Medicamentos Recibidos', value: 1247, icon: '💊', color: 'green' },
-  { label: 'Entregas Realizadas', value: 834, icon: '📤', color: 'blue' },
-  { label: 'Beneficiarios Activos', value: 156, icon: '👥', color: 'green' },
-  { label: 'Donantes Registrados', value: 89, icon: '🤝', color: 'blue' },
+  { label: 'Medicamentos Recibidos', value: stockDisponible, icon: '💊', color: 'green' },
+  { label: 'Entregas Realizadas', value: totalEntregas, icon: '📤', color: 'blue' },
+  { label: 'Beneficiarios Activos', value: totalBeneficiarios, icon: '👥', color: 'green' },
+  { label: 'Donantes Registrados', value: totalDonantes, icon: '🤝', color: 'blue' },
 ];
 
 const quickActions = [
-  { 
-    href: '/recibir', 
-    icon: '📥', 
-    title: 'Recibir Donación', 
-    desc: 'Registrar un nuevo lote de medicamentos donados',
-    color: 'green'
-  },
-  { 
-    href: '/entregar', 
-    icon: '📤', 
-    title: 'Entregar Medicamento', 
-    desc: 'Procesar entrega con fórmula médica',
-    color: 'blue'
-  },
-  { 
-    href: '/inventario', 
-    icon: '📋', 
-    title: 'Ver Inventario', 
-    desc: 'Consultar stock disponible y estados',
-    color: 'green'
-  },
-];
-
-const recentActivity = [
-  { time: 'Hace 15 min', action: 'Ingreso de lote', detail: 'Paracetamol 500mg - 200 tabletas', type: 'entry' },
-  { time: 'Hace 1 hora', action: 'Entrega realizada', detail: 'Amoxicilina 250mg a María López', type: 'exit' },
-  { time: 'Hace 2 horas', action: 'Ingreso de lote', detail: 'Ibuprofeno 400mg - 150 tabletas', type: 'entry' },
-  { time: 'Hace 3 horas', action: 'Entrega realizada', detail: 'Losartán 50mg a Carlos Ruiz', type: 'exit' },
-  { time: 'Hace 5 horas', action: 'Donación recibida', detail: 'Fundación Salud - 12 tipos de medicamentos', type: 'entry' },
+  { href: '/recibir', icon: '📥', title: 'Recibir Donación', desc: 'Registrar un nuevo lote de medicamentos donados', color: 'green' },
+  { href: '/entregar', icon: '📤', title: 'Entregar Medicamento', desc: 'Procesar entrega con fórmula médica', color: 'blue' },
+  { href: '/inventario', icon: '📋', title: 'Ver Inventario', desc: 'Consultar stock disponible y estados', color: 'green' },
 ];
 ---
 
@@ -47,7 +84,6 @@ const recentActivity = [
   <Navbar />
 
   <main class="main-content">
-    <!-- HERO -->
     <section class="hero">
       <div class="hero-bg">
         <div class="hero-shape shape-1"></div>
@@ -76,7 +112,7 @@ const recentActivity = [
             <div class="hero-card-icon">💊</div>
             <div class="hero-card-info">
               <span class="hero-card-label">Stock Disponible</span>
-              <span class="hero-card-value">4,238</span>
+              <span class="hero-card-value">{stockDisponible.toLocaleString('es-CO')}</span>
               <span class="hero-card-unit">unidades</span>
             </div>
           </div>
@@ -84,7 +120,7 @@ const recentActivity = [
             <div class="hero-card-icon">⏰</div>
             <div class="hero-card-info">
               <span class="hero-card-label">Por Vencer (30 días)</span>
-              <span class="hero-card-value warning">23</span>
+              <span class="hero-card-value warning">{porVencer}</span>
               <span class="hero-card-unit">lotes</span>
             </div>
           </div>
@@ -92,12 +128,11 @@ const recentActivity = [
       </div>
     </section>
 
-    <!-- ESTADÍSTICAS -->
     <section class="stats-section">
       <div class="container">
         <div class="stats-grid">
           {stats.map((stat, i) => (
-            <div class={`stat-card animate-on-scroll`} style={`transition-delay: ${i * 0.1}s`}>
+            <div class="stat-card animate-on-scroll" style={`transition-delay: ${i * 0.1}s`}>
               <div class={`stat-icon ${stat.color}`}>{stat.icon}</div>
               <div class="stat-info">
                 <span class="stat-value" data-counter={stat.value}>0</span>
@@ -109,13 +144,12 @@ const recentActivity = [
       </div>
     </section>
 
-    <!-- ACCIONES RÁPIDAS -->
     <section class="actions-section">
       <div class="container">
         <h2 class="section-title animate-on-scroll">Acciones Rápidas</h2>
         <div class="actions-grid">
           {quickActions.map((action, i) => (
-            <a href={action.href} class={`action-card animate-on-scroll`} style={`transition-delay: ${i * 0.15}s`}>
+            <a href={action.href} class="action-card animate-on-scroll" style={`transition-delay: ${i * 0.15}s`}>
               <div class={`action-icon ${action.color}`}>{action.icon}</div>
               <h3>{action.title}</h3>
               <p>{action.desc}</p>
@@ -126,7 +160,6 @@ const recentActivity = [
       </div>
     </section>
 
-    <!-- ACTIVIDAD RECIENTE -->
     <section class="activity-section">
       <div class="container">
         <div class="activity-header animate-on-scroll">
@@ -135,15 +168,20 @@ const recentActivity = [
         </div>
         <div class="activity-list">
           {recentActivity.map((item, i) => (
-            <div class={`activity-item animate-on-scroll`} style={`transition-delay: ${i * 0.08}s`}>
-              <div class={`activity-dot ${item.type}`}></div>
+            <div class="activity-item animate-on-scroll" style={`transition-delay: ${i * 0.08}s`}>
+              <div class={`activity-dot ${item.tipo}`}></div>
               <div class="activity-info">
-                <span class="activity-action">{item.action}</span>
-                <span class="activity-detail">{item.detail}</span>
+                <span class="activity-action">{item.accion}</span>
+                <span class="activity-detail">{item.detalle}</span>
               </div>
-              <span class="activity-time">{item.time}</span>
+              <span class="activity-time">{tiempoRelativo(item.fecha)}</span>
             </div>
           ))}
+          {recentActivity.length === 0 && (
+            <div class="activity-item">
+              <span class="activity-detail">No hay actividad reciente</span>
+            </div>
+          )}
         </div>
       </div>
     </section>
@@ -153,489 +191,67 @@ const recentActivity = [
 </Layout>
 
 <style>
-  .main-content {
-    padding-top: 72px;
-  }
-
-  /* ===== HERO ===== */
-  .hero {
-    position: relative;
-    overflow: hidden;
-    padding: 80px 0 60px;
-    background: linear-gradient(160deg, var(--green-lighter) 0%, #fff 40%, #E3F2FD 100%);
-  }
-
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
-
-  .hero-shape {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.5;
-  }
-
-  .shape-1 {
-    width: 400px;
-    height: 400px;
-    background: var(--green-light);
-    top: -100px;
-    right: -100px;
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .shape-2 {
-    width: 300px;
-    height: 300px;
-    background: var(--blue-light);
-    bottom: -50px;
-    left: -50px;
-    animation: float 8s ease-in-out infinite reverse;
-  }
-
-  .shape-3 {
-    width: 200px;
-    height: 200px;
-    background: var(--green-lighter);
-    top: 50%;
-    left: 40%;
-    animation: float 7s ease-in-out infinite 1s;
-  }
-
-  .hero-inner {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 60px;
-    align-items: center;
-    position: relative;
-    z-index: 1;
-  }
-
-  .hero-badge {
-    display: inline-block;
-    padding: 6px 16px;
-    background: var(--green-primary);
-    color: white;
-    border-radius: 100px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    margin-bottom: 20px;
-  }
-
-  .hero h1 {
-    font-size: 3.2rem;
-    font-weight: 800;
-    color: var(--green-dark);
-    line-height: 1.1;
-    margin-bottom: 20px;
-  }
-
-  .text-gradient {
-    background: linear-gradient(135deg, var(--green-primary) 0%, var(--blue) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .hero-desc {
-    font-size: 1.15rem;
-    color: var(--text-muted);
-    line-height: 1.7;
-    margin-bottom: 32px;
-    max-width: 480px;
-  }
-
-  .hero-actions {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  .hero-visual {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .hero-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 24px;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-light);
-    box-shadow: var(--shadow-md);
-    transition: all 0.3s ease;
-  }
-
-  .hero-card:hover {
-    transform: translateX(8px);
-    box-shadow: var(--shadow-lg);
-  }
-
-  .hero-card-icon {
-    font-size: 2rem;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--green-lighter);
-    border-radius: var(--radius-md);
-    flex-shrink: 0;
-  }
-
-  .hero-card-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .hero-card-label {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-  }
-
-  .hero-card-value {
-    font-family: var(--font-display);
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--green-primary);
-    line-height: 1;
-  }
-
-  .hero-card-value.warning {
-    color: var(--warning);
-  }
-
-  .hero-card-unit {
-    font-size: 0.85rem;
-    color: var(--text-light);
-  }
-
-  /* ===== STATS ===== */
-  .stats-section {
-    padding: 60px 0;
-    margin-top: -20px;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-  }
-
-  .stat-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 24px;
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-light);
-    box-shadow: var(--shadow-sm);
-    transition: all 0.3s ease;
-  }
-
-  .stat-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-  }
-
-  .stat-icon {
-    font-size: 1.5rem;
-    width: 52px;
-    height: 52px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-md);
-    flex-shrink: 0;
-  }
-
-  .stat-icon.green {
-    background: var(--green-lighter);
-  }
-
-  .stat-icon.blue {
-    background: var(--blue-light);
-  }
-
-  .stat-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .stat-value {
-    font-family: var(--font-display);
-    font-size: 1.6rem;
-    font-weight: 800;
-    color: var(--green-dark);
-    line-height: 1;
-  }
-
-  .stat-label {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-top: 4px;
-  }
-
-  /* ===== ACTIONS ===== */
-  .actions-section {
-    padding: 40px 0 60px;
-  }
-
-  .section-title {
-    font-size: 1.5rem;
-    color: var(--green-dark);
-    margin-bottom: 28px;
-  }
-
-  .actions-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-
-  .action-card {
-    display: flex;
-    flex-direction: column;
-    padding: 32px 28px;
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-light);
-    box-shadow: var(--shadow-sm);
-    text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .action-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--green-primary), var(--blue));
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.3s ease;
-  }
-
-  .action-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-6px);
-    border-color: var(--green-light);
-  }
-
-  .action-card:hover::before {
-    transform: scaleX(1);
-  }
-
-  .action-icon {
-    font-size: 2rem;
-    width: 64px;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--radius-lg);
-    margin-bottom: 20px;
-    transition: transform 0.3s ease;
-  }
-
-  .action-card:hover .action-icon {
-    transform: scale(1.1);
-  }
-
-  .action-icon.green {
-    background: var(--green-lighter);
-  }
-
-  .action-icon.blue {
-    background: var(--blue-light);
-  }
-
-  .action-card h3 {
-    font-size: 1.15rem;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
-
-  .action-card p {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    line-height: 1.5;
-    flex: 1;
-  }
-
-  .action-arrow {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    background: var(--green-lighter);
-    color: var(--green-primary);
-    border-radius: 50%;
-    font-weight: 700;
-    margin-top: 20px;
-    transition: all 0.3s ease;
-    align-self: flex-start;
-  }
-
-  .action-card:hover .action-arrow {
-    background: var(--green-primary);
-    color: white;
-    transform: translateX(4px);
-  }
-
-  /* ===== ACTIVITY ===== */
-  .activity-section {
-    padding: 0 0 80px;
-  }
-
-  .activity-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .activity-header .section-title {
-    margin-bottom: 0;
-  }
-
-  .activity-list {
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-light);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-  }
-
-  .activity-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 18px 24px;
-    border-bottom: 1px solid var(--border-light);
-    transition: background 0.2s;
-  }
-
-  .activity-item:last-child {
-    border-bottom: none;
-  }
-
-  .activity-item:hover {
-    background: var(--surface-hover);
-  }
-
-  .activity-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .activity-dot.entry {
-    background: var(--green-primary);
-    box-shadow: 0 0 0 4px var(--green-lighter);
-  }
-
-  .activity-dot.exit {
-    background: var(--blue);
-    box-shadow: 0 0 0 4px var(--blue-light);
-  }
-
-  .activity-info {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .activity-action {
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: var(--text);
-  }
-
-  .activity-detail {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-  }
-
-  .activity-time {
-    font-size: 0.8rem;
-    color: var(--text-light);
-    white-space: nowrap;
-  }
-
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 1024px) {
-    .hero-inner {
-      grid-template-columns: 1fr;
-      gap: 40px;
-    }
-
-    .hero h1 {
-      font-size: 2.5rem;
-    }
-
-    .stats-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .actions-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @media (max-width: 640px) {
-    .hero {
-      padding: 60px 0 40px;
-    }
-
-    .hero h1 {
-      font-size: 2rem;
-    }
-
-    .hero-actions {
-      flex-direction: column;
-    }
-
-    .hero-actions .btn {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .stats-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .actions-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .activity-item {
-      flex-wrap: wrap;
-    }
-
-    .activity-time {
-      width: 100%;
-      margin-left: 26px;
-      margin-top: -4px;
-    }
-  }
+  .main-content { padding-top: 72px; }
+  .hero { position: relative; overflow: hidden; padding: 80px 0 60px; background: linear-gradient(160deg, var(--green-lighter) 0%, #fff 40%, #E3F2FD 100%); }
+  .hero-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .hero-shape { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5; }
+  .shape-1 { width: 400px; height: 400px; background: var(--green-light); top: -100px; right: -100px; animation: float 6s ease-in-out infinite; }
+  .shape-2 { width: 300px; height: 300px; background: var(--blue-light); bottom: -50px; left: -50px; animation: float 8s ease-in-out infinite reverse; }
+  .shape-3 { width: 200px; height: 200px; background: var(--green-lighter); top: 50%; left: 40%; animation: float 7s ease-in-out infinite 1s; }
+  .hero-inner { display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: center; position: relative; z-index: 1; }
+  .hero-badge { display: inline-block; padding: 6px 16px; background: var(--green-primary); color: white; border-radius: 100px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 20px; }
+  .hero h1 { font-size: 3.2rem; font-weight: 800; color: var(--green-dark); line-height: 1.1; margin-bottom: 20px; }
+  .text-gradient { background: linear-gradient(135deg, var(--green-primary) 0%, var(--blue) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-desc { font-size: 1.15rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 32px; max-width: 480px; }
+  .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+  .hero-visual { display: flex; flex-direction: column; gap: 16px; }
+  .hero-card { display: flex; align-items: center; gap: 16px; padding: 24px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: var(--radius-lg); border: 1px solid var(--border-light); box-shadow: var(--shadow-md); transition: all 0.3s ease; }
+  .hero-card:hover { transform: translateX(8px); box-shadow: var(--shadow-lg); }
+  .hero-card-icon { font-size: 2rem; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: var(--green-lighter); border-radius: var(--radius-md); flex-shrink: 0; }
+  .hero-card-info { display: flex; flex-direction: column; }
+  .hero-card-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+  .hero-card-value { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--green-primary); line-height: 1; }
+  .hero-card-value.warning { color: var(--warning); }
+  .hero-card-unit { font-size: 0.85rem; color: var(--text-light); }
+  .stats-section { padding: 60px 0; margin-top: -20px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+  .stat-card { display: flex; align-items: center; gap: 16px; padding: 24px; background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); transition: all 0.3s ease; }
+  .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .stat-icon { font-size: 1.5rem; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); flex-shrink: 0; }
+  .stat-icon.green { background: var(--green-lighter); }
+  .stat-icon.blue { background: var(--blue-light); }
+  .stat-info { display: flex; flex-direction: column; }
+  .stat-value { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: var(--green-dark); line-height: 1; }
+  .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+  .actions-section { padding: 40px 0 60px; }
+  .section-title { font-size: 1.5rem; color: var(--green-dark); margin-bottom: 28px; }
+  .actions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .action-card { display: flex; flex-direction: column; padding: 32px 28px; background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); text-decoration: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+  .action-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--green-primary), var(--blue)); transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease; }
+  .action-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-6px); border-color: var(--green-light); }
+  .action-card:hover::before { transform: scaleX(1); }
+  .action-icon { font-size: 2rem; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-lg); margin-bottom: 20px; transition: transform 0.3s ease; }
+  .action-card:hover .action-icon { transform: scale(1.1); }
+  .action-icon.green { background: var(--green-lighter); }
+  .action-icon.blue { background: var(--blue-light); }
+  .action-card h3 { font-size: 1.15rem; color: var(--text); margin-bottom: 8px; }
+  .action-card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; flex: 1; }
+  .action-arrow { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: var(--green-lighter); color: var(--green-primary); border-radius: 50%; font-weight: 700; margin-top: 20px; transition: all 0.3s ease; align-self: flex-start; }
+  .action-card:hover .action-arrow { background: var(--green-primary); color: white; transform: translateX(4px); }
+  .activity-section { padding: 0 0 80px; }
+  .activity-header { display: flex; justify-content: space-between; align-items: center; }
+  .activity-header .section-title { margin-bottom: 0; }
+  .activity-list { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); overflow: hidden; }
+  .activity-item { display: flex; align-items: center; gap: 16px; padding: 18px 24px; border-bottom: 1px solid var(--border-light); transition: background 0.2s; }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-item:hover { background: var(--surface-hover); }
+  .activity-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .activity-dot.entry { background: var(--green-primary); box-shadow: 0 0 0 4px var(--green-lighter); }
+  .activity-dot.exit { background: var(--blue); box-shadow: 0 0 0 4px var(--blue-light); }
+  .activity-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .activity-action { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+  .activity-detail { font-size: 0.85rem; color: var(--text-muted); }
+  .activity-time { font-size: 0.8rem; color: var(--text-light); white-space: nowrap; }
+  @media (max-width: 1024px) { .hero-inner { grid-template-columns: 1fr; gap: 40px; } .hero h1 { font-size: 2.5rem; } .stats-grid { grid-template-columns: repeat(2, 1fr); } .actions-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px) { .hero { padding: 60px 0 40px; } .hero h1 { font-size: 2rem; } .hero-actions { flex-direction: column; } .hero-actions .btn { width: 100%; justify-content: center; } .stats-grid { grid-template-columns: 1fr; } .actions-grid { grid-template-columns: 1fr; } .activity-item { flex-wrap: wrap; } .activity-time { width: 100%; margin-left: 26px; margin-top: -4px; } }
 </style>

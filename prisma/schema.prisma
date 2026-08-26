@@ -21,6 +21,8 @@ model donantes {
 
   medicamentos medicamentos_inventario[]
 
+  @@index([nombre])
+  @@index([creado_en])
   @@map("donantes")
 }
 
@@ -33,6 +35,8 @@ model beneficiarios {
 
   entregas entregas[]
 
+  @@index([nombre])
+  @@index([creado_en])
   @@map("beneficiarios")
 }
 
@@ -55,6 +59,12 @@ model medicamentos_inventario {
   donante          donantes?            @relation(fields: [donante_id], references: [id], onDelete: SetNull)
   detalle_entregas detalle_entrega[]
 
+  @@index([donante_id])
+  @@index([creado_en])
+  @@index([fecha_vencimiento])
+  @@index([cantidad_disponible])
+  @@index([nombre_generico])
+  @@index([nombre_comercial])
   @@map("medicamentos_inventario")
 }
 
@@ -71,6 +81,8 @@ model entregas {
   beneficiario beneficiarios    @relation(fields: [beneficiario_id], references: [id])
   detalles     detalle_entrega[]
 
+  @@index([beneficiario_id])
+  @@index([fecha_entrega])
   @@map("entregas")
 }
 
@@ -87,5 +99,7 @@ model detalle_entrega {
   entrega     entregas                 @relation(fields: [entrega_id], references: [id], onDelete: Cascade)
   medicamento medicamentos_inventario  @relation(fields: [medicamento_id], references: [id])
 
+  @@index([entrega_id])
+  @@index([medicamento_id])
   @@map("detalle_entrega")
 }
