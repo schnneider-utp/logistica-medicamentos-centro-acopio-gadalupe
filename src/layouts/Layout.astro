@@ -44,7 +44,7 @@ const {
 
       // Contador animado
       function animateCounter(el: HTMLElement) {
-        const target = parseInt(el.getAttribute('data-target') || '0');
+        const target = parseInt(el.getAttribute('data-counter') || '0');
         const duration = 2000;
         const start = performance.now();
         const initial = 0;

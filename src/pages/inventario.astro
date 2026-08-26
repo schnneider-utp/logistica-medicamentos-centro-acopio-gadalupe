@@ -11,11 +11,11 @@ const page = parseInt(Astro.url.searchParams.get('page') || '1');
 const pageSize = 20;
 const skip = (page - 1) * pageSize;
 
-const whereClause = {
+const searchFilter = {
   ...(search ? {
     OR: [
-      { nombre_generico: { contains: search, mode: 'insensitive' } },
-      { nombre_comercial: { contains: search, mode: 'insensitive' } },
+      { nombre_generico: { contains: search, mode: 'insensitive' as const } },
+      { nombre_comercial: { contains: search, mode: 'insensitive' as const } },
     ],
   } : {}),
   ...(tipo ? { tipo_cantidad: tipo } : {}),
@@ -23,13 +23,13 @@ const whereClause = {
 
 const [medicamentos, totalCount, totalUnidades, lotesActivos, porVencerCount, vencidosCount] = await Promise.all([
   prisma.medicamentos_inventario.findMany({
-    where: whereClause,
+    where: searchFilter,
     include: { donante: { select: { nombre: true } } },
     orderBy: { creado_en: 'desc' },
     skip,
     take: pageSize,
   }),
-  prisma.medicamentos_inventario.count({ where: whereClause }),
+  prisma.medicamentos_inventario.count({ where: searchFilter }),
   prisma.medicamentos_inventario.aggregate({ _sum: { cantidad_disponible: true } }),
   prisma.medicamentos_inventario.count(),
   prisma.medicamentos_inventario.count({

@@ -10,22 +10,22 @@ const page = parseInt(Astro.url.searchParams.get('page') || '1');
 const pageSize = 12;
 const skip = (page - 1) * pageSize;
 
-const whereClause = search ? {
+const searchFilter = search ? {
   OR: [
-    { nombre: { contains: search, mode: 'insensitive' } },
-    { direccion: { contains: search, mode: 'insensitive' } },
+    { nombre: { contains: search, mode: 'insensitive' as const } },
+    { direccion: { contains: search, mode: 'insensitive' as const } },
   ],
-} : undefined;
+} : {};
 
 const [beneficiariosRaw, totalCount] = await Promise.all([
   prisma.beneficiarios.findMany({
-    where: whereClause,
+    where: searchFilter,
     include: { _count: { select: { entregas: true } } },
     orderBy: { nombre: 'asc' },
     skip,
     take: pageSize,
   }),
-  prisma.beneficiarios.count({ where: whereClause }),
+  prisma.beneficiarios.count({ where: searchFilter }),
 ]);
 
 const beneficiarioIds = beneficiariosRaw.map(b => b.id);
