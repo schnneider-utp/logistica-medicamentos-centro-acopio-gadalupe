@@ -13,7 +13,7 @@ import Icon from './Icon.astro';
       <div class="footer-grid">
         <div class="footer-brand">
           <div class="footer-logo">
-            <span class="logo-icon"><Icon name="stethoscope" size={24} /></span>
+            <span class="logo-icon"><img src="/favicon.png" alt="Logo Centro de Acopio" /></span>
             <div>
               <span class="logo-name">Centro de Acopio</span>
               <span class="logo-sub">Guadalupe</span>
@@ -104,9 +104,15 @@ import Icon from './Icon.astro';
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: var(--radius-md);
-    color: white;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .logo-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .logo-name {

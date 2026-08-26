@@ -16,7 +16,7 @@ const navLinks = [
 <nav class="navbar">
   <div class="navbar-inner container">
     <a href="/" class="navbar-brand">
-      <span class="brand-icon"><Icon name="stethoscope" size={24} /></span>
+      <span class="brand-icon"><img src="/favicon.png" alt="Logo Centro de Acopio" /></span>
       <div class="brand-text">
         <span class="brand-name">Centro de Acopio</span>
         <span class="brand-sub">Guadalupe</span>
@@ -100,9 +100,15 @@ const navLinks = [
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--green-lighter) 0%, #C8E6C9 100%);
-    border-radius: var(--radius-md);
-    color: var(--green-primary);
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .brand-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .brand-text {
