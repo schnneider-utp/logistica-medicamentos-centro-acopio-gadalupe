@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================
+// 1. CATÁLOGOS BASE
+// ============================================
+
+model donantes {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @db.VarChar(200)
+  celular     String?  @db.VarChar(50)
+  correo      String?  @db.VarChar(150)
+  creado_en   DateTime @default(now()) @map("creado_en")
+
+  medicamentos medicamentos_inventario[]
+
+  @@map("donantes")
+}
+
+model beneficiarios {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @db.VarChar(200)
+  celular   String?  @db.VarChar(50)
+  direccion String?
+  creado_en DateTime @default(now()) @map("creado_en")
+
+  entregas entregas[]
+
+  @@map("beneficiarios")
+}
+
+// ============================================
+// 2. INVENTARIO Y LOTES RECIBIDOS (ENTRADAS)
+// ============================================
+
+model medicamentos_inventario {
+  id                     Int      @id @default(autoincrement())
+  nombre_generico        String   @db.VarChar(150)
+  nombre_comercial       String?  @db.VarChar(150)
+  concentracion          String?  @db.VarChar(50)
+  tipo_cantidad          String?  @db.VarChar(50)
+  cantidad_disponible    Int
+  fecha_vencimiento      DateTime @db.Date
+  donante_id             Int?
+  url_bucket_comprobante String?
+  creado_en              DateTime @default(now()) @map("creado_en")
+
+  donante          donantes?            @relation(fields: [donante_id], references: [id], onDelete: SetNull)
+  detalle_entregas detalle_entrega[]
+
+  @@map("medicamentos_inventario")
+}
+
+// ============================================
+// 3. CABECERA DE ENTREGAS (Agrupa fórmula médica)
+// ============================================
+
+model entregas {
+  id                 Int      @id @default(autoincrement())
+  beneficiario_id    Int
+  url_formula_medica String?
+  fecha_entrega      DateTime @default(now()) @map("fecha_entrega")
+
+  beneficiario beneficiarios    @relation(fields: [beneficiario_id], references: [id])
+  detalles     detalle_entrega[]
+
+  @@map("entregas")
+}
+
+// ============================================
+// 4. DETALLE DE LA ENTREGA (Varios medicamentos por fórmula)
+// ============================================
+
+model detalle_entrega {
+  id                 Int @id @default(autoincrement())
+  entrega_id         Int
+  medicamento_id     Int
+  cantidad_entregada Int
+
+  entrega     entregas                 @relation(fields: [entrega_id], references: [id], onDelete: Cascade)
+  medicamento medicamentos_inventario  @relation(fields: [medicamento_id], references: [id])
+
+  @@map("detalle_entrega")
+}
