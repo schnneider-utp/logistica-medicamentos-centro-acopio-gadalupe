@@ -25,3 +25,4 @@ prisma/generated/
 
 # jetbrains setting folder
 .idea/
+.vercel
