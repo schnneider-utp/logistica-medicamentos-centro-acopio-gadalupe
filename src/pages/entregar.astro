@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
 import prisma from '../lib/prisma';
 
 const medicamentosDisponibles = await prisma.medicamentos_inventario.findMany({
@@ -16,7 +17,7 @@ const medicamentosDisponibles = await prisma.medicamentos_inventario.findMany({
   <main class="main-content">
     <div class="container">
       <div class="page-header animate-fade-in-up">
-        <h1>📤 Entregar Medicamento</h1>
+        <h1><Icon name="upload" size={28} /> Entregar Medicamento</h1>
         <p>Procesa la entrega de medicamentos a un beneficiario con fórmula médica</p>
       </div>
 
@@ -24,7 +25,7 @@ const medicamentosDisponibles = await prisma.medicamentos_inventario.findMany({
         <div class="form-section animate-slide-left">
           <div class="form-card">
             <div class="form-card-header">
-              <span class="form-card-icon">👤</span>
+              <span class="form-card-icon"><Icon name="user" size={24} /></span>
               <div>
                 <h2>Datos del Beneficiario</h2>
                 <p>Información de la persona que recibe los medicamentos</p>
@@ -51,7 +52,7 @@ const medicamentosDisponibles = await prisma.medicamentos_inventario.findMany({
         <div class="meds-section animate-slide-right delay-2">
           <div class="form-card">
             <div class="form-card-header">
-              <span class="form-card-icon">💊</span>
+              <span class="form-card-icon"><Icon name="pill" size={24} /></span>
               <div>
                 <h2>Medicamentos a Entregar</h2>
                 <p>Selecciona y define la cantidad de cada medicamento</p>
@@ -91,7 +92,7 @@ const medicamentosDisponibles = await prisma.medicamentos_inventario.findMany({
 
             <div class="form-actions">
               <div></div>
-              <button type="submit" class="btn btn-primary btn-lg">✅ Confirmar Entrega</button>
+              <button type="submit" class="btn btn-primary btn-lg">Confirmar Entrega</button>
             </div>
           </div>
         </div>
@@ -178,7 +179,7 @@ const medicamentosDisponibles = await prisma.medicamentos_inventario.findMany({
   .entrega-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px; align-items: start; }
   .form-card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border-light); box-shadow: var(--shadow-md); padding: 28px; }
   .form-card-header { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 24px; padding-bottom: 18px; border-bottom: 1px solid var(--border-light); }
-  .form-card-icon { font-size: 1.6rem; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--green-lighter); border-radius: var(--radius-md); flex-shrink: 0; }
+  .form-card-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--green-lighter); border-radius: var(--radius-md); flex-shrink: 0; color: var(--green-primary); }
   .form-card-header h2 { font-size: 1.05rem; color: var(--text); margin-bottom: 2px; }
   .form-card-header p { color: var(--text-muted); font-size: 0.85rem; }
   .meds-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }

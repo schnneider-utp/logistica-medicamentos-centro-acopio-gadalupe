@@ -70,10 +70,10 @@ export const GET: APIRoute = async () => {
 
     return new Response(JSON.stringify({
       stats: [
-        { label: 'Medicamentos Recibidos', value: totalMedicamentos._sum.cantidad_disponible || 0, icon: '💊', color: 'green' },
-        { label: 'Entregas Realizadas', value: totalEntregas, icon: '📤', color: 'blue' },
-        { label: 'Beneficiarios Activos', value: totalBeneficiarios, icon: '👥', color: 'green' },
-        { label: 'Donantes Registrados', value: totalDonantes, icon: '🤝', color: 'blue' },
+        { label: 'Medicamentos Recibidos', value: totalMedicamentos._sum.cantidad_disponible || 0, icon: 'pill', color: 'green' },
+        { label: 'Entregas Realizadas', value: totalEntregas, icon: 'upload', color: 'blue' },
+        { label: 'Beneficiarios Activos', value: totalBeneficiarios, icon: 'users', color: 'green' },
+        { label: 'Donantes Registrados', value: totalDonantes, icon: 'handshake', color: 'blue' },
       ],
       stockDisponible: totalMedicamentos._sum.cantidad_disponible || 0,
       porVencer,

@@ -1,4 +1,5 @@
 ---
+import Icon from './Icon.astro';
 ---
 
 <footer class="footer">
@@ -12,22 +13,22 @@
       <div class="footer-grid">
         <div class="footer-brand">
           <div class="footer-logo">
-            <span class="logo-icon">⚕️</span>
+            <span class="logo-icon"><Icon name="stethoscope" size={24} /></span>
             <div>
               <span class="logo-name">Centro de Acopio</span>
               <span class="logo-sub">Guadalupe</span>
             </div>
           </div>
           <p class="footer-desc">
-            Gestión eficiente de donaciones, almacenamiento y distribución de medicamentos para nuestra comunidad.
+            Gestion eficiente de donaciones, almacenamiento y distribucion de medicamentos para nuestra comunidad.
           </p>
         </div>
 
         <div class="footer-nav">
-          <h4>Navegación</h4>
+          <h4>Navegacion</h4>
           <a href="/">Inicio</a>
           <a href="/inventario">Inventario</a>
-          <a href="/recibir">Recibir Donación</a>
+          <a href="/recibir">Recibir Donacion</a>
           <a href="/entregar">Entregar Medicamento</a>
         </div>
 
@@ -40,15 +41,15 @@
         <div class="footer-contact">
           <h4>Contacto</h4>
           <div class="contact-item">
-            <span>📍</span>
+            <span><Icon name="map-pin" size={16} /></span>
             <span>Guadalupe, Centro de Acopio</span>
           </div>
           <div class="contact-item">
-            <span>📞</span>
+            <span><Icon name="smartphone" size={16} /></span>
             <span>Contactar al administrador</span>
           </div>
           <div class="contact-item">
-            <span>✉️</span>
+            <span><Icon name="mail" size={16} /></span>
             <span>admin@centroacopio.org</span>
           </div>
         </div>
@@ -56,7 +57,7 @@
 
       <div class="footer-bottom">
         <p>&copy; 2026 Centro de Acopio Guadalupe. Todos los derechos reservados.</p>
-        <p class="footer-tagso">Sistema de Logística de Medicamentos</p>
+        <p class="footer-tagso">Sistema de Logistica de Medicamentos</p>
       </div>
     </div>
   </div>
@@ -98,7 +99,6 @@
   }
 
   .logo-icon {
-    font-size: 1.8rem;
     width: 48px;
     height: 48px;
     display: flex;
@@ -106,6 +106,7 @@
     justify-content: center;
     background: rgba(255, 255, 255, 0.1);
     border-radius: var(--radius-md);
+    color: white;
   }
 
   .logo-name {
@@ -164,6 +165,12 @@
     color: rgba(255, 255, 255, 0.65);
     font-size: 0.9rem;
     margin-bottom: 10px;
+  }
+
+  .contact-item span:first-child {
+    color: var(--green-light);
+    display: flex;
+    align-items: center;
   }
 
   .footer-bottom {

@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
 import prisma from '../lib/prisma';
 import { formatDate } from '../lib/utils';
 
@@ -84,7 +85,7 @@ const beneficiariosActivos = await prisma.beneficiarios.count({
       <div class="page-header animate-fade-in-up">
         <div class="header-top">
           <div>
-            <h1>👥 Beneficiarios</h1>
+            <h1><Icon name="users" size={28} /> Beneficiarios</h1>
             <p>Directorio de personas que reciben medicamentos del centro de acopio</p>
           </div>
         </div>
@@ -92,7 +93,7 @@ const beneficiariosActivos = await prisma.beneficiarios.count({
 
       <form method="GET" class="search-section animate-fade-in-up delay-1">
         <div class="search-box">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon"><Icon name="search" size={18} /></span>
           <input type="text" name="search" value={search} placeholder="Buscar por nombre o dirección..." class="form-input search-input" />
         </div>
       </form>
@@ -126,13 +127,13 @@ const beneficiariosActivos = await prisma.beneficiarios.count({
             <div class="card-body">
               {b.celular && (
                 <div class="info-row">
-                  <span class="info-icon">📱</span>
+                  <span class="info-icon"><Icon name="smartphone" size={14} /></span>
                   <span>{b.celular}</span>
                 </div>
               )}
               {b.direccion && (
                 <div class="info-row">
-                  <span class="info-icon">📍</span>
+                  <span class="info-icon"><Icon name="map-pin" size={14} /></span>
                   <span>{b.direccion}</span>
                 </div>
               )}
@@ -180,7 +181,7 @@ const beneficiariosActivos = await prisma.beneficiarios.count({
   .page-header p { color: var(--text-muted); font-size: 1rem; }
   .search-section { margin-bottom: 24px; }
   .search-box { position: relative; max-width: 400px; }
-  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1rem; }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; color: var(--text-muted); }
   .search-input { padding-left: 42px !important; width: 100%; }
   .quick-stats { display: flex; gap: 16px; margin-bottom: 32px; }
   .quick-stat { padding: 16px 24px; background: var(--surface); border-radius: var(--radius-md); border: 1px solid var(--border-light); display: flex; flex-direction: column; }
@@ -196,7 +197,7 @@ const beneficiariosActivos = await prisma.beneficiarios.count({
   .card-id { font-size: 0.75rem; color: var(--text-light); }
   .card-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; }
   .info-row { display: flex; align-items: flex-start; gap: 8px; font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
-  .info-icon { flex-shrink: 0; font-size: 0.9rem; }
+  .info-icon { flex-shrink: 0; display: flex; align-items: center; color: var(--green-primary); }
   .card-footer { display: flex; justify-content: space-between; align-items: flex-end; padding: 14px 20px; background: var(--surface-hover); border-top: 1px solid var(--border-light); }
   .footer-stat { display: flex; align-items: baseline; gap: 4px; }
   .footer-stat-value { font-family: var(--font-display); font-size: 1.3rem; font-weight: 800; color: var(--green-primary); }

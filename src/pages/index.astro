@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
 import prisma from '../lib/prisma';
 import { tiempoRelativo } from '../lib/utils';
 
@@ -67,16 +68,16 @@ const recentActivity = [
   .slice(0, 5);
 
 const stats = [
-  { label: 'Medicamentos Recibidos', value: stockDisponible, icon: '💊', color: 'green' },
-  { label: 'Entregas Realizadas', value: totalEntregas, icon: '📤', color: 'blue' },
-  { label: 'Beneficiarios Activos', value: totalBeneficiarios, icon: '👥', color: 'green' },
-  { label: 'Donantes Registrados', value: totalDonantes, icon: '🤝', color: 'blue' },
+  { label: 'Medicamentos Recibidos', value: stockDisponible, icon: 'pill', color: 'green' },
+  { label: 'Entregas Realizadas', value: totalEntregas, icon: 'upload', color: 'blue' },
+  { label: 'Beneficiarios Activos', value: totalBeneficiarios, icon: 'users', color: 'green' },
+  { label: 'Donantes Registrados', value: totalDonantes, icon: 'handshake', color: 'blue' },
 ];
 
 const quickActions = [
-  { href: '/recibir', icon: '📥', title: 'Recibir Donación', desc: 'Registrar un nuevo lote de medicamentos donados', color: 'green' },
-  { href: '/entregar', icon: '📤', title: 'Entregar Medicamento', desc: 'Procesar entrega con fórmula médica', color: 'blue' },
-  { href: '/inventario', icon: '📋', title: 'Ver Inventario', desc: 'Consultar stock disponible y estados', color: 'green' },
+  { href: '/recibir', icon: 'inbox', title: 'Recibir Donacion', desc: 'Registrar un nuevo lote de medicamentos donados', color: 'green' },
+  { href: '/entregar', icon: 'upload', title: 'Entregar Medicamento', desc: 'Procesar entrega con formula medica', color: 'blue' },
+  { href: '/inventario', icon: 'clipboard-list', title: 'Ver Inventario', desc: 'Consultar stock disponible y estados', color: 'green' },
 ];
 ---
 
@@ -93,23 +94,23 @@ const quickActions = [
       <div class="container hero-inner">
         <div class="hero-text animate-fade-in-up">
           <span class="hero-badge">Centro de Acopio Guadalupe</span>
-          <h1>Gestión de<br/><span class="text-gradient">Medicamentos</span></h1>
+          <h1>Gestion de<br/><span class="text-gradient">Medicamentos</span></h1>
           <p class="hero-desc">
             Administra donaciones, controla el inventario y distribuye medicamentos 
-            de manera eficiente a quienes más lo necesitan.
+            de manera eficiente a quienes mas lo necesitan.
           </p>
           <div class="hero-actions">
             <a href="/recibir" class="btn btn-primary btn-lg">
-              <span>📥</span> Recibir Donación
+              <Icon name="inbox" size={18} /> Recibir Donacion
             </a>
             <a href="/inventario" class="btn btn-secondary btn-lg">
-              <span>📋</span> Ver Inventario
+              <Icon name="clipboard-list" size={18} /> Ver Inventario
             </a>
           </div>
         </div>
         <div class="hero-visual animate-fade-in-up delay-2">
           <div class="hero-card">
-            <div class="hero-card-icon">💊</div>
+            <div class="hero-card-icon"><Icon name="pill" size={28} /></div>
             <div class="hero-card-info">
               <span class="hero-card-label">Stock Disponible</span>
               <span class="hero-card-value">{stockDisponible.toLocaleString('es-CO')}</span>
@@ -117,9 +118,9 @@ const quickActions = [
             </div>
           </div>
           <div class="hero-card">
-            <div class="hero-card-icon">⏰</div>
+            <div class="hero-card-icon"><Icon name="clock" size={28} /></div>
             <div class="hero-card-info">
-              <span class="hero-card-label">Por Vencer (30 días)</span>
+              <span class="hero-card-label">Por Vencer (30 dias)</span>
               <span class="hero-card-value warning">{porVencer}</span>
               <span class="hero-card-unit">lotes</span>
             </div>
@@ -133,7 +134,7 @@ const quickActions = [
         <div class="stats-grid">
           {stats.map((stat, i) => (
             <div class="stat-card animate-on-scroll" style={`transition-delay: ${i * 0.1}s`}>
-              <div class={`stat-icon ${stat.color}`}>{stat.icon}</div>
+              <div class={`stat-icon ${stat.color}`}><Icon name={stat.icon} size={24} /></div>
               <div class="stat-info">
                 <span class="stat-value" data-counter={stat.value}>0</span>
                 <span class="stat-label">{stat.label}</span>
@@ -146,14 +147,14 @@ const quickActions = [
 
     <section class="actions-section">
       <div class="container">
-        <h2 class="section-title animate-on-scroll">Acciones Rápidas</h2>
+        <h2 class="section-title animate-on-scroll">Acciones Rapidas</h2>
         <div class="actions-grid">
           {quickActions.map((action, i) => (
             <a href={action.href} class="action-card animate-on-scroll" style={`transition-delay: ${i * 0.15}s`}>
-              <div class={`action-icon ${action.color}`}>{action.icon}</div>
+              <div class={`action-icon ${action.color}`}><Icon name={action.icon} size={28} /></div>
               <h3>{action.title}</h3>
               <p>{action.desc}</p>
-              <span class="action-arrow">→</span>
+              <span class="action-arrow">&rarr;</span>
             </a>
           ))}
         </div>
@@ -164,7 +165,7 @@ const quickActions = [
       <div class="container">
         <div class="activity-header animate-on-scroll">
           <h2 class="section-title">Actividad Reciente</h2>
-          <a href="/inventario" class="btn btn-ghost btn-sm">Ver todo →</a>
+          <a href="/inventario" class="btn btn-ghost btn-sm">Ver todo &rarr;</a>
         </div>
         <div class="activity-list">
           {recentActivity.map((item, i) => (
@@ -204,10 +205,11 @@ const quickActions = [
   .text-gradient { background: linear-gradient(135deg, var(--green-primary) 0%, var(--blue) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
   .hero-desc { font-size: 1.15rem; color: var(--text-muted); line-height: 1.7; margin-bottom: 32px; max-width: 480px; }
   .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+  .hero-actions .btn { display: inline-flex; align-items: center; gap: 8px; }
   .hero-visual { display: flex; flex-direction: column; gap: 16px; }
   .hero-card { display: flex; align-items: center; gap: 16px; padding: 24px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: var(--radius-lg); border: 1px solid var(--border-light); box-shadow: var(--shadow-md); transition: all 0.3s ease; }
   .hero-card:hover { transform: translateX(8px); box-shadow: var(--shadow-lg); }
-  .hero-card-icon { font-size: 2rem; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: var(--green-lighter); border-radius: var(--radius-md); flex-shrink: 0; }
+  .hero-card-icon { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; background: var(--green-lighter); border-radius: var(--radius-md); flex-shrink: 0; color: var(--green-primary); }
   .hero-card-info { display: flex; flex-direction: column; }
   .hero-card-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
   .hero-card-value { font-family: var(--font-display); font-size: 2rem; font-weight: 800; color: var(--green-primary); line-height: 1; }
@@ -217,9 +219,9 @@ const quickActions = [
   .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
   .stat-card { display: flex; align-items: center; gap: 16px; padding: 24px; background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border-light); box-shadow: var(--shadow-sm); transition: all 0.3s ease; }
   .stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
-  .stat-icon { font-size: 1.5rem; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); flex-shrink: 0; }
-  .stat-icon.green { background: var(--green-lighter); }
-  .stat-icon.blue { background: var(--blue-light); }
+  .stat-icon { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); flex-shrink: 0; }
+  .stat-icon.green { background: var(--green-lighter); color: var(--green-primary); }
+  .stat-icon.blue { background: var(--blue-light); color: var(--blue); }
   .stat-info { display: flex; flex-direction: column; }
   .stat-value { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: var(--green-dark); line-height: 1; }
   .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
@@ -230,10 +232,10 @@ const quickActions = [
   .action-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, var(--green-primary), var(--blue)); transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease; }
   .action-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-6px); border-color: var(--green-light); }
   .action-card:hover::before { transform: scaleX(1); }
-  .action-icon { font-size: 2rem; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-lg); margin-bottom: 20px; transition: transform 0.3s ease; }
+  .action-icon { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-lg); margin-bottom: 20px; transition: transform 0.3s ease; }
   .action-card:hover .action-icon { transform: scale(1.1); }
-  .action-icon.green { background: var(--green-lighter); }
-  .action-icon.blue { background: var(--blue-light); }
+  .action-icon.green { background: var(--green-lighter); color: var(--green-primary); }
+  .action-icon.blue { background: var(--blue-light); color: var(--blue); }
   .action-card h3 { font-size: 1.15rem; color: var(--text); margin-bottom: 8px; }
   .action-card p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; flex: 1; }
   .action-arrow { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: var(--green-lighter); color: var(--green-primary); border-radius: 50%; font-weight: 700; margin-top: 20px; transition: all 0.3s ease; align-self: flex-start; }

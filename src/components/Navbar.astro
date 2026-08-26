@@ -1,27 +1,29 @@
 ---
+import Icon from './Icon.astro';
+
 const currentPath = Astro.url.pathname;
 
 const navLinks = [
-  { href: '/', label: 'Inicio', icon: '🏠' },
-  { href: '/inventario', label: 'Inventario', icon: '💊' },
-  { href: '/recibir', label: 'Recibir', icon: '📥' },
-  { href: '/entregar', label: 'Entregar', icon: '📤' },
-  { href: '/beneficiarios', label: 'Beneficiarios', icon: '👥' },
-  { href: '/donantes', label: 'Donantes', icon: '🤝' },
+  { href: '/', label: 'Inicio', icon: 'home' },
+  { href: '/inventario', label: 'Inventario', icon: 'pill' },
+  { href: '/recibir', label: 'Recibir', icon: 'inbox' },
+  { href: '/entregar', label: 'Entregar', icon: 'upload' },
+  { href: '/beneficiarios', label: 'Beneficiarios', icon: 'users' },
+  { href: '/donantes', label: 'Donantes', icon: 'handshake' },
 ];
 ---
 
 <nav class="navbar">
   <div class="navbar-inner container">
     <a href="/" class="navbar-brand">
-      <span class="brand-icon">⚕️</span>
+      <span class="brand-icon"><Icon name="stethoscope" size={24} /></span>
       <div class="brand-text">
         <span class="brand-name">Centro de Acopio</span>
         <span class="brand-sub">Guadalupe</span>
       </div>
     </a>
 
-    <button class="mobile-toggle" aria-label="Menú" id="mobileToggle">
+    <button class="mobile-toggle" aria-label="Menu" id="mobileToggle">
       <span></span>
       <span></span>
       <span></span>
@@ -33,14 +35,14 @@ const navLinks = [
           href={link.href} 
           class:list={['nav-link', { active: currentPath === link.href }]}
         >
-          <span class="nav-icon">{link.icon}</span>
+          <span class="nav-icon"><Icon name={link.icon} size={16} /></span>
           {link.label}
         </a>
       ))}
     </div>
 
     <a href="/recibir" class="btn btn-primary btn-sm navbar-cta">
-      <span>+</span> Nueva Donación
+      <span>+</span> Nueva Donacion
     </a>
   </div>
 </nav>
@@ -54,7 +56,6 @@ const navLinks = [
     links?.classList.toggle('open');
   });
 
-  // Cerrar menú al hacer click en un link
   links?.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', () => {
       toggle?.classList.remove('open');
@@ -94,7 +95,6 @@ const navLinks = [
   }
 
   .brand-icon {
-    font-size: 1.8rem;
     width: 44px;
     height: 44px;
     display: flex;
@@ -102,6 +102,7 @@ const navLinks = [
     justify-content: center;
     background: linear-gradient(135deg, var(--green-lighter) 0%, #C8E6C9 100%);
     border-radius: var(--radius-md);
+    color: var(--green-primary);
   }
 
   .brand-text {
@@ -169,7 +170,8 @@ const navLinks = [
   }
 
   .nav-icon {
-    font-size: 1rem;
+    display: flex;
+    align-items: center;
   }
 
   .navbar-cta {

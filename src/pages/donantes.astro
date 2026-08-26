@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
 import prisma from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { formatDate, formatNumber } from '../lib/utils';
@@ -73,7 +74,7 @@ const totalTabletas = totalTabletasResult._sum.cantidad_disponible || 0;
       <div class="page-header animate-fade-in-up">
         <div class="header-top">
           <div>
-            <h1>🤝 Donantes</h1>
+            <h1><Icon name="handshake" size={28} /> Donantes</h1>
             <p>Personas y organizaciones que contribuyen con medicamentos al centro de acopio</p>
           </div>
         </div>
@@ -81,14 +82,14 @@ const totalTabletas = totalTabletasResult._sum.cantidad_disponible || 0;
 
       <form method="GET" class="search-section animate-fade-in-up delay-1">
         <div class="search-box">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon"><Icon name="search" size={18} /></span>
           <input type="text" name="search" value={search} placeholder="Buscar por nombre o correo..." class="form-input search-input" />
         </div>
       </form>
 
       <div class="summary-banner animate-fade-in-up delay-2">
         <div class="summary-item">
-          <span class="summary-icon">👥</span>
+          <span class="summary-icon"><Icon name="users" size={24} /></span>
           <div>
             <span class="summary-value">{totalDonantesResult}</span>
             <span class="summary-label">Donantes Registrados</span>
@@ -96,7 +97,7 @@ const totalTabletas = totalTabletasResult._sum.cantidad_disponible || 0;
         </div>
         <div class="summary-divider"></div>
         <div class="summary-item">
-          <span class="summary-icon">📦</span>
+          <span class="summary-icon"><Icon name="package" size={24} /></span>
           <div>
             <span class="summary-value">{formatNumber(totalTabletas)}</span>
             <span class="summary-label">Tabletas Recibidas</span>
@@ -130,8 +131,8 @@ const totalTabletas = totalTabletasResult._sum.cantidad_disponible || 0;
                   </td>
                   <td>
                     <div class="contact-cell">
-                      {d.celular && <span>📱 {d.celular}</span>}
-                      {d.correo && <span class="correo">✉️ {d.correo}</span>}
+                      {d.celular && <span><Icon name="smartphone" size={14} /> {d.celular}</span>}
+                      {d.correo && <span class="correo"><Icon name="mail" size={14} /> {d.correo}</span>}
                     </div>
                   </td>
                   <td>
@@ -178,7 +179,7 @@ const totalTabletas = totalTabletasResult._sum.cantidad_disponible || 0;
   .page-header p { color: var(--text-muted); font-size: 1rem; }
   .search-section { margin-bottom: 24px; }
   .search-box { position: relative; max-width: 400px; }
-  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1rem; }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); display: flex; align-items: center; color: var(--text-muted); }
   .search-input { padding-left: 42px !important; width: 100%; }
   .summary-banner { display: flex; align-items: center; gap: 32px; padding: 24px 32px; background: linear-gradient(135deg, var(--green-dark) 0%, var(--green-primary) 100%); border-radius: var(--radius-lg); margin-bottom: 24px; color: white; }
   .summary-item { display: flex; align-items: center; gap: 12px; }
@@ -193,7 +194,7 @@ const totalTabletas = totalTabletasResult._sum.cantidad_disponible || 0;
   .donor-name { font-weight: 600; color: var(--text); }
   .donor-id { font-size: 0.75rem; color: var(--text-light); }
   .contact-cell { display: flex; flex-direction: column; gap: 2px; font-size: 0.85rem; color: var(--text-muted); }
-  .correo { font-size: 0.8rem; color: var(--blue); }
+  .correo { font-size: 0.8rem; color: var(--blue); display: flex; align-items: center; gap: 4px; }
   .donation-count { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; padding: 4px 12px; background: var(--blue-light); color: var(--blue); border-radius: 100px; font-weight: 700; font-size: 0.9rem; }
   .tabletas-badge { display: inline-flex; align-items: center; padding: 4px 12px; background: var(--green-lighter); color: var(--green-primary); border-radius: 100px; font-weight: 700; font-size: 0.85rem; }
   .pagination { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; margin-top: 16px; }

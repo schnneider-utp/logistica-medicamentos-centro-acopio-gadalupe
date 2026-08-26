@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
 import prisma from '../lib/prisma';
 import { calcularEstado, getEstadoBadge, formatDate } from '../lib/utils';
 
@@ -51,7 +52,7 @@ const totalPages = Math.ceil(totalCount / pageSize);
       <div class="page-header animate-fade-in-up">
         <div class="header-top">
           <div>
-            <h1>📋 Inventario de Medicamentos</h1>
+            <h1><Icon name="clipboard-list" size={28} /> Inventario de Medicamentos</h1>
             <p>Consulta y administra el stock disponible en el centro de acopio</p>
           </div>
           <a href="/recibir" class="btn btn-primary">
@@ -62,7 +63,7 @@ const totalPages = Math.ceil(totalCount / pageSize);
 
       <form method="GET" class="filters-bar animate-fade-in-up delay-1">
         <div class="search-box">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon"><Icon name="search" size={18} /></span>
           <input type="text" name="search" value={search} placeholder="Buscar por nombre genérico o comercial..." class="form-input search-input" />
         </div>
         <div class="filter-group">
@@ -138,8 +139,8 @@ const totalPages = Math.ceil(totalCount / pageSize);
                     </td>
                     <td>
                       <div class="actions-cell">
-                        <button class="btn btn-ghost btn-sm" title="Editar">✏️</button>
-                        <button class="btn btn-ghost btn-sm" title="Eliminar">🗑️</button>
+                        <button class="btn btn-ghost btn-sm" title="Editar"><Icon name="pencil" size={16} /></button>
+                        <button class="btn btn-ghost btn-sm" title="Eliminar"><Icon name="trash" size={16} /></button>
                       </div>
                     </td>
                   </tr>
@@ -178,7 +179,7 @@ const totalPages = Math.ceil(totalCount / pageSize);
   .page-header p { color: var(--text-muted); font-size: 1rem; }
   .filters-bar { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
   .search-box { flex: 1; min-width: 280px; position: relative; }
-  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 1rem; z-index: 1; }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); z-index: 1; display: flex; align-items: center; color: var(--text-muted); }
   .search-input { padding-left: 42px !important; width: 100%; }
   .filter-group { display: flex; gap: 12px; }
   .filter-group .form-select { min-width: 160px; }
