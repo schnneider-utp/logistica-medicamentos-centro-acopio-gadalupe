@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import Icon from '../components/Icon.astro';
+import ExportButton from '../components/ExportButton.astro';
 import prisma from '../lib/prisma';
 import { calcularEstado, getEstadoBadge, formatDate } from '../lib/utils';
 
@@ -55,9 +56,12 @@ const totalPages = Math.ceil(totalCount / pageSize);
             <h1><Icon name="clipboard-list" size={28} /> Inventario de Medicamentos</h1>
             <p>Consulta y administra el stock disponible en el centro de acopio</p>
           </div>
-          <a href="/recibir" class="btn btn-primary">
-            <span>+</span> Agregar Medicamento
-          </a>
+          <div class="header-actions">
+            <ExportButton tipo="inventario" />
+            <a href="/recibir" class="btn btn-primary">
+              <span>+</span> Agregar Medicamento
+            </a>
+          </div>
         </div>
       </div>
 
@@ -175,6 +179,7 @@ const totalPages = Math.ceil(totalCount / pageSize);
   .main-content { padding-top: 72px; min-height: 100vh; }
   .page-header { padding: 40px 0 24px; }
   .header-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
+  .header-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .page-header h1 { font-size: 1.8rem; color: var(--green-dark); margin-bottom: 4px; }
   .page-header p { color: var(--text-muted); font-size: 1rem; }
   .filters-bar { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }

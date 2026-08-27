@@ -1,0 +1,98 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  tipo: 'donantes' | 'beneficiarios' | 'inventario' | 'historial';
+  label?: string;
+}
+
+const { tipo, label = 'Descargar Excel' } = Astro.props;
+---
+
+<button class="export-btn" data-export-tipo={tipo}>
+  <Icon name="download" size={16} />
+  <span>{label}</span>
+</button>
+
+<script>
+  document.querySelectorAll('[data-export-tipo]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const tipo = (btn as HTMLElement).dataset.exportTipo;
+      const originalHTML = btn.innerHTML;
+      btn.setAttribute('disabled', '');
+      btn.innerHTML = `<span class="export-spinner"></span> Generando...`;
+
+      try {
+        const res = await fetch(`/api/export?tipo=${tipo}`);
+        if (!res.ok) throw new Error('Error al descargar');
+        const { rows, filename } = await res.json();
+
+        const XLSX = await import('xlsx');
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, tipo);
+
+        ws['!cols'] = Object.keys(rows[0] || {}).map(key => {
+          const maxLen = Math.max(key.length, ...rows.map((r: Record<string, unknown>) => String(r[key] || '').length));
+          return { wch: Math.min(maxLen + 2, 40) };
+        });
+
+        XLSX.writeFile(wb, filename);
+      } catch (err) {
+        console.error('Export error:', err);
+        alert('Error al generar el archivo. Intenta de nuevo.');
+      } finally {
+        btn.removeAttribute('disabled');
+        btn.innerHTML = originalHTML;
+      }
+    });
+  });
+</script>
+
+<style>
+  .export-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--surface);
+    color: var(--green-primary);
+    border: 1px solid var(--green-primary);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .export-btn:hover:not(:disabled) {
+    background: var(--green-primary);
+    color: white;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+
+  .export-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .export-btn :global(svg) {
+    flex-shrink: 0;
+  }
+
+  .export-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>

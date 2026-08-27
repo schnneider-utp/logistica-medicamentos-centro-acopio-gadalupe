@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import Icon from '../components/Icon.astro';
+import ExportButton from '../components/ExportButton.astro';
 import prisma from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 import { formatDate, formatNumber } from '../lib/utils';
@@ -77,6 +78,7 @@ const totalTabletas = totalTabletasResult._sum.cantidad_disponible || 0;
             <h1><Icon name="handshake" size={28} /> Donantes</h1>
             <p>Personas y organizaciones que contribuyen con medicamentos al centro de acopio</p>
           </div>
+          <ExportButton tipo="donantes" />
         </div>
       </div>
 

@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import Icon from '../components/Icon.astro';
+import ExportButton from '../components/ExportButton.astro';
 import prisma from '../lib/prisma';
 import { formatDate } from '../lib/utils';
 
@@ -88,6 +89,7 @@ const beneficiariosActivos = await prisma.beneficiarios.count({
             <h1><Icon name="users" size={28} /> Beneficiarios</h1>
             <p>Directorio de personas que reciben medicamentos del centro de acopio</p>
           </div>
+          <ExportButton tipo="beneficiarios" />
         </div>
       </div>
 

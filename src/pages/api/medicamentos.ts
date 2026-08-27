@@ -56,7 +56,19 @@ export const POST: APIRoute = async ({ request }) => {
 
       if (!donante) {
         donante = await prisma.donantes.create({
-          data: { nombre: data.donante_nombre },
+          data: {
+            nombre: data.donante_nombre,
+            celular: data.donante_celular || null,
+            correo: data.donante_correo || null,
+          },
+        });
+      } else if (data.donante_celular || data.donante_correo) {
+        await prisma.donantes.update({
+          where: { id: donante.id },
+          data: {
+            ...(data.donante_celular ? { celular: data.donante_celular } : {}),
+            ...(data.donante_correo ? { correo: data.donante_correo } : {}),
+          },
         });
       }
       donanteId = donante.id;

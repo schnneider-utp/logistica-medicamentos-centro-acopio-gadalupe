@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import Icon from '../components/Icon.astro';
+import ExportButton from '../components/ExportButton.astro';
 import prisma from '../lib/prisma';
 import { calcularEstado, getEstadoBadge, formatDate, tiempoRelativo } from '../lib/utils';
 
@@ -115,6 +116,7 @@ const baseUrl = buildUrl({ search, tipo, desde, hasta });
           <h1>Historial de Actividad</h1>
           <p class="header-subtitle">Donaciones recibidas y entregas realizadas</p>
         </div>
+        <ExportButton tipo="historial" />
       </div>
 
       <div class="filters-bar animate-fade-in-up">
@@ -229,6 +231,7 @@ const baseUrl = buildUrl({ search, tipo, desde, hasta });
   .main-content { padding-top: 72px; padding-bottom: 80px; }
 
   .page-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .page-header :global(.export-btn) { margin-left: auto; }
   .header-icon { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; background: var(--green-lighter); color: var(--green-primary); border-radius: var(--radius-lg); flex-shrink: 0; }
   .page-header h1 { font-size: 1.8rem; color: var(--green-dark); margin: 0; }
   .header-subtitle { color: var(--text-muted); margin: 4px 0 0; font-size: 0.95rem; }
