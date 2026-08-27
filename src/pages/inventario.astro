@@ -143,8 +143,22 @@ const totalPages = Math.ceil(totalCount / pageSize);
                     </td>
                     <td>
                       <div class="actions-cell">
-                        <button class="btn btn-ghost btn-sm" title="Editar"><Icon name="pencil" size={16} /></button>
-                        <button class="btn btn-ghost btn-sm" title="Eliminar"><Icon name="trash" size={16} /></button>
+                        <button
+                          class="btn btn-ghost btn-sm edit-btn"
+                          title="Editar"
+                          data-id={med.id}
+                          data-nombre={med.nombre_generico}
+                          data-comercial={med.nombre_comercial || ''}
+                          data-concentracion={med.concentracion || ''}
+                          data-tipo={med.tipo_cantidad || ''}
+                          data-cantidad={med.cantidad_disponible}
+                          data-vencimiento={new Date(med.fecha_vencimiento).toISOString().split('T')[0]}
+                        >
+                          <Icon name="pencil" size={16} />
+                        </button>
+                        <button class="btn btn-ghost btn-sm delete-btn" title="Eliminar" data-id={med.id} data-nombre={med.nombre_generico}>
+                          <Icon name="trash" size={16} />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -173,7 +187,141 @@ const totalPages = Math.ceil(totalCount / pageSize);
   </main>
 
   <Footer />
+
+  <div class="modal-overlay" id="editModal" style="display: none;">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Editar Medicamento</h2>
+        <button class="modal-close" id="closeModal">&times;</button>
+      </div>
+      <form id="editForm" class="modal-body">
+        <input type="hidden" name="id" id="editId" />
+        <div class="modal-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre generico *</label>
+            <input type="text" name="nombre_generico" id="editNombre" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nombre comercial</label>
+            <input type="text" name="nombre_comercial" id="editComercial" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Concentracion</label>
+            <input type="text" name="concentracion" id="editConcentracion" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo</label>
+            <select name="tipo_cantidad" id="editTipo" class="form-select">
+              <option value="">Seleccionar...</option>
+              <option value="Tabletas">Tabletas</option>
+              <option value="Cápsulas">Cápsulas</option>
+              <option value="Frascos">Frascos</option>
+              <option value="Sobres">Sobres</option>
+              <option value="Ampolletas">Ampolletas</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cantidad *</label>
+            <input type="number" name="cantidad_disponible" id="editCantidad" class="form-input" min="0" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha vencimiento *</label>
+            <input type="date" name="fecha_vencimiento" id="editVencimiento" class="form-input" required />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-ghost" id="cancelEdit">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </Layout>
+
+<script>
+  document.addEventListener('click', async (e) => {
+    const target = e.target as HTMLElement;
+    const btn = target.closest('.delete-btn') as HTMLElement | null;
+    if (btn) {
+      const id = btn.dataset.id;
+      const nombre = btn.dataset.nombre;
+      if (!id) return;
+      if (!confirm(`¿Eliminar "${nombre}" del inventario?`)) return;
+
+      try {
+        const res = await fetch(`/api/medicamentos/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+          window.location.reload();
+        } else {
+          alert('Error al eliminar');
+        }
+      } catch {
+        alert('Error de conexion');
+      }
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    const target = e.target as HTMLElement;
+    const btn = target.closest('.edit-btn') as HTMLElement | null;
+    if (btn) {
+      const modal = document.getElementById('editModal')!;
+      (document.getElementById('editId') as HTMLInputElement).value = btn.dataset.id || '';
+      (document.getElementById('editNombre') as HTMLInputElement).value = btn.dataset.nombre || '';
+      (document.getElementById('editComercial') as HTMLInputElement).value = btn.dataset.comercial || '';
+      (document.getElementById('editConcentracion') as HTMLInputElement).value = btn.dataset.concentracion || '';
+      (document.getElementById('editTipo') as HTMLSelectElement).value = btn.dataset.tipo || '';
+      (document.getElementById('editCantidad') as HTMLInputElement).value = btn.dataset.cantidad || '';
+      (document.getElementById('editVencimiento') as HTMLInputElement).value = btn.dataset.vencimiento || '';
+      modal.style.display = 'flex';
+    }
+  });
+
+  document.getElementById('closeModal')?.addEventListener('click', () => {
+    document.getElementById('editModal')!.style.display = 'none';
+  });
+
+  document.getElementById('cancelEdit')?.addEventListener('click', () => {
+    document.getElementById('editModal')!.style.display = 'none';
+  });
+
+  document.getElementById('editModal')?.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).id === 'editModal') {
+      (e.target as HTMLElement).style.display = 'none';
+    }
+  });
+
+  document.getElementById('editForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const id = (form.querySelector('#editId') as HTMLInputElement).value;
+    const formData = new FormData(form);
+
+    try {
+      const res = await fetch(`/api/medicamentos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre_generico: formData.get('nombre_generico'),
+          nombre_comercial: formData.get('nombre_comercial'),
+          concentracion: formData.get('concentracion'),
+          tipo_cantidad: formData.get('tipo_cantidad'),
+          cantidad_disponible: formData.get('cantidad_disponible'),
+          fecha_vencimiento: formData.get('fecha_vencimiento'),
+        }),
+      });
+
+      if (res.ok) {
+        window.location.reload();
+      } else {
+        alert('Error al actualizar');
+      }
+    } catch {
+      alert('Error de conexion');
+    }
+  });
+</script>
 
 <style>
   .main-content { padding-top: 72px; min-height: 100vh; }
@@ -205,6 +353,20 @@ const totalPages = Math.ceil(totalCount / pageSize);
   .text-warning { color: var(--warning) !important; font-weight: 600; }
   .text-muted { color: var(--text-muted); }
   .actions-cell { display: flex; gap: 4px; }
+  .delete-btn:hover { color: var(--danger) !important; background: var(--danger-light) !important; }
+  .edit-btn:hover { color: var(--blue) !important; background: var(--blue-light) !important; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg); width: 100%; max-width: 560px; box-shadow: var(--shadow-lg); }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border-light); }
+  .modal-header h2 { font-size: 1.2rem; color: var(--text); margin: 0; }
+  .modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); padding: 4px 8px; border-radius: var(--radius-sm); }
+  .modal-close:hover { background: var(--bg); }
+  .modal-body { padding: 24px; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .modal-grid .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .modal-grid .form-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .modal-grid .form-input, .modal-grid .form-select { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-md); font-size: 0.9rem; background: var(--bg); color: var(--text); }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-light); }
   .pagination { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; }
   .pagination-info { font-size: 0.85rem; color: var(--text-muted); }
   .pagination-btns { display: flex; gap: 8px; }
