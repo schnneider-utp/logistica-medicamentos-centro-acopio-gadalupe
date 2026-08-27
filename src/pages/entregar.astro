@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import Icon from '../components/Icon.astro';
+import LoadingOverlay from '../components/LoadingOverlay.astro';
 import prisma from '../lib/prisma';
 
 const medicamentosDisponibles = await prisma.medicamentos_inventario.findMany({
@@ -101,6 +102,7 @@ const medicamentosDisponibles = await prisma.medicamentos_inventario.findMany({
   </main>
 
   <Footer />
+  <LoadingOverlay />
 </Layout>
 
 <script>
@@ -124,8 +126,14 @@ const medicamentosDisponibles = await prisma.medicamentos_inventario.findMany({
 
   (window as any).adjustQty = adjustQty;
 
+  let isSubmittingEntrega = false;
+
   document.getElementById('entregaForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (isSubmittingEntrega) return;
+    isSubmittingEntrega = true;
+    showLoading('Procesando entrega...');
+
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
 
@@ -140,6 +148,8 @@ const medicamentosDisponibles = await prisma.medicamentos_inventario.findMany({
 
     if (medicamentos.length === 0) {
       alert('Selecciona al menos un medicamento');
+      isSubmittingEntrega = false;
+      hideLoading();
       return;
     }
 
@@ -166,7 +176,10 @@ const medicamentosDisponibles = await prisma.medicamentos_inventario.findMany({
         alert('Error al procesar la entrega');
       }
     } catch (err) {
-      alert('Error de conexión');
+      alert('Error de conexion');
+    } finally {
+      isSubmittingEntrega = false;
+      hideLoading();
     }
   });
 </script>

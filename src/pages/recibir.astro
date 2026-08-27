@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
 import Footer from '../components/Footer.astro';
 import Icon from '../components/Icon.astro';
+import LoadingOverlay from '../components/LoadingOverlay.astro';
 import prisma from '../lib/prisma';
 
 const donantes = await prisma.donantes.findMany({ orderBy: { nombre: 'asc' } });
@@ -170,6 +171,7 @@ const donantes = await prisma.donantes.findMany({ orderBy: { nombre: 'asc' } });
   </main>
 
   <Footer />
+  <LoadingOverlay />
 </Layout>
 
 <script>
@@ -193,8 +195,14 @@ const donantes = await prisma.donantes.findMany({ orderBy: { nombre: 'asc' } });
   (window as any).prevStep = prevStep;
   (window as any).resetForm = resetForm;
 
+  let isSubmittingDonacion = false;
+
   document.getElementById('donacionForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (isSubmittingDonacion) return;
+    isSubmittingDonacion = true;
+    showLoading('Registrando donacion...');
+
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
 
@@ -223,10 +231,13 @@ const donantes = await prisma.donantes.findMany({ orderBy: { nombre: 'asc' } });
         const success = document.getElementById('stepSuccess');
         if (success) { success.style.display = 'block'; success.style.animation = 'scaleIn 0.5s ease-out'; }
       } else {
-        alert('Error al registrar la donación');
+        alert('Error al registrar la donacion');
       }
     } catch (err) {
-      alert('Error de conexión');
+      alert('Error de conexion');
+    } finally {
+      isSubmittingDonacion = false;
+      hideLoading();
     }
   });
 </script>
