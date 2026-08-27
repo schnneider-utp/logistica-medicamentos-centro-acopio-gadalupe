@@ -1,0 +1,308 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import Icon from '../components/Icon.astro';
+import prisma from '../lib/prisma';
+import { calcularEstado, getEstadoBadge, formatDate, tiempoRelativo } from '../lib/utils';
+
+const url = new URL(Astro.request.url);
+const search = url.searchParams.get('search') || '';
+const tipo = url.searchParams.get('tipo') || 'todos';
+const desde = url.searchParams.get('desde') || '';
+const hasta = url.searchParams.get('hasta') || '';
+const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'));
+const perPage = 20;
+
+const searchFilter = search ? {
+  OR: [
+    { nombre_generico: { contains: search, mode: 'insensitive' as const } },
+    { nombre_comercial: { contains: search, mode: 'insensitive' as const } },
+    { donante: { nombre: { contains: search, mode: 'insensitive' as const } } },
+  ],
+} : {};
+
+const dateFilter: Record<string, Date> = {};
+if (desde) dateFilter.gte = new Date(desde);
+if (hasta) { const d = new Date(hasta); d.setHours(23, 59, 59, 999); dateFilter.lte = d; }
+
+const [rawDonaciones, rawEntregas] = await Promise.all([
+  tipo !== 'entregas' ? prisma.medicamentos_inventario.findMany({
+    where: {
+      ...searchFilter,
+      ...(Object.keys(dateFilter).length ? { creado_en: dateFilter } : {}),
+    },
+    include: { donante: { select: { nombre: true } } },
+    orderBy: { creado_en: 'desc' },
+  }) : [],
+  tipo !== 'donaciones' ? prisma.entregas.findMany({
+    where: {
+      ...(search ? {
+        beneficiario: { nombre: { contains: search, mode: 'insensitive' as const } },
+      } : {}),
+      ...(Object.keys(dateFilter).length ? { fecha_entrega: dateFilter } : {}),
+    },
+    include: {
+      beneficiario: { select: { nombre: true } },
+      detalles: {
+        include: {
+          medicamento: { select: { nombre_generico: true, concentracion: true, tipo_cantidad: true } },
+        },
+      },
+    },
+    orderBy: { fecha_entrega: 'desc' },
+  }) : [],
+]);
+
+interface TimelineEvent {
+  tipo: 'donacion' | 'entrega';
+  fecha: Date;
+  titulo: string;
+  subtitulo: string;
+  detalle: { nombre: string; cantidad: number; estado?: string; badgeClass?: string }[];
+}
+
+const eventos: TimelineEvent[] = [
+  ...rawDonaciones.map(d => ({
+    tipo: 'donacion' as const,
+    fecha: d.creado_en,
+    titulo: d.donante?.nombre || 'Donante desconocido',
+    subtitulo: `${d.nombre_comercial || d.nombre_generico} ${d.concentracion || ''}`,
+    detalle: [{
+      nombre: `${d.nombre_generico}${d.concentracion ? ' ' + d.concentracion : ''}${d.tipo_cantidad ? ' (' + d.tipo_cantidad + ')' : ''}`,
+      cantidad: d.cantidad_disponible,
+      estado: calcularEstado(d.fecha_vencimiento),
+      badgeClass: getEstadoBadge(calcularEstado(d.fecha_vencimiento)).class,
+    }],
+  })),
+  ...rawEntregas.map(e => ({
+    tipo: 'entrega' as const,
+    fecha: e.fecha_entrega,
+    titulo: e.beneficiario.nombre,
+    subtitulo: `${e.detalles.length} medicamento${e.detalles.length !== 1 ? 's' : ''}`,
+    detalle: e.detalles.map(d => ({
+      nombre: `${d.medicamento.nombre_generico}${d.medicamento.concentracion ? ' ' + d.medicamento.concentracion : ''}${d.medicamento.tipo_cantidad ? ' (' + d.medicamento.tipo_cantidad + ')' : ''}`,
+      cantidad: d.cantidad_entregada,
+    })),
+  })),
+].sort((a, b) => b.fecha.getTime() - a.fecha.getTime());
+
+const totalEventos = eventos.length;
+const totalPages = Math.ceil(totalEventos / perPage);
+const eventosPaginados = eventos.slice((page - 1) * perPage, page * perPage);
+
+function buildUrl(params: Record<string, string>) {
+  const u = new URL(Astro.request.url);
+  for (const [k, v] of Object.entries(params)) {
+    if (v) u.searchParams.set(k, v);
+    else u.searchParams.delete(k);
+  }
+  u.searchParams.delete('page');
+  return u.pathname + u.search;
+}
+
+const baseUrl = buildUrl({ search, tipo, desde, hasta });
+---
+
+<Layout>
+  <Navbar />
+
+  <main class="main-content">
+    <div class="container">
+      <div class="page-header animate-fade-in-up">
+        <div class="header-icon"><Icon name="clock" size={32} /></div>
+        <div>
+          <h1>Historial de Actividad</h1>
+          <p class="header-subtitle">Donaciones recibidas y entregas realizadas</p>
+        </div>
+      </div>
+
+      <div class="filters-bar animate-fade-in-up">
+        <form class="filters-form" method="get">
+          <div class="filter-group">
+            <div class="filter-input-wrap">
+              <Icon name="search" size={18} />
+              <input type="text" name="search" placeholder="Buscar por nombre..." value={search} class="filter-input" />
+            </div>
+          </div>
+          <div class="filter-group">
+            <select name="tipo" class="filter-select">
+              <option value="todos" selected={tipo === 'todos'}>Todos los eventos</option>
+              <option value="donaciones" selected={tipo === 'donaciones'}>Solo donaciones</option>
+              <option value="entregas" selected={tipo === 'entregas'}>Solo entregas</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Desde</label>
+            <input type="date" name="desde" value={desde} class="filter-date" />
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Hasta</label>
+            <input type="date" name="hasta" value={hasta} class="filter-date" />
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm">
+            <Icon name="search" size={16} /> Filtrar
+          </button>
+          {(search || tipo !== 'todos' || desde || hasta) && (
+            <a href="/historial" class="btn btn-ghost btn-sm">Limpiar</a>
+          )}
+        </form>
+      </div>
+
+      <div class="timeline-summary animate-fade-in-up">
+        <span class="summary-total">{totalEventos} evento{totalEventos !== 1 ? 's' : ''}</span>
+        <div class="summary-legend">
+          <span class="legend-item"><span class="legend-dot donacion"></span> Donaciones</span>
+          <span class="legend-item"><span class="legend-dot entrega"></span> Entregas</span>
+        </div>
+      </div>
+
+      {eventosPaginados.length > 0 ? (
+        <div class="timeline">
+          {eventosPaginados.map((evento, i) => (
+            <div class={`timeline-item ${evento.tipo} animate-on-scroll`} style={`transition-delay: ${i * 0.05}s`}>
+              <div class="timeline-connector">
+                <div class={`timeline-dot ${evento.tipo}`}>
+                  <Icon name={evento.tipo === 'donacion' ? 'inbox' : 'upload'} size={14} />
+                </div>
+                <div class="timeline-line"></div>
+              </div>
+              <div class="timeline-card">
+                <div class="card-header">
+                  <div class="card-type-badge">
+                    <span class={`type-badge ${evento.tipo}`}>
+                      {evento.tipo === 'donacion' ? 'Donacion' : 'Entrega'}
+                    </span>
+                    <span class="card-date">{formatDate(evento.fecha)}</span>
+                    <span class="card-time-relative">{tiempoRelativo(evento.fecha)}</span>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title">{evento.tipo === 'donacion' ? 'Donante: ' : 'Beneficiario: '}{evento.titulo}</h3>
+                  <div class="card-items">
+                    {evento.detalle.map(item => (
+                      <div class="card-item">
+                        <div class="item-info">
+                          <span class="item-name">{item.nombre}</span>
+                          <span class="item-qty">&times; {item.cantidad}</span>
+                        </div>
+                        {item.estado && (
+                          <span class={`item-badge ${item.badgeClass}`}>
+                            {getEstadoBadge(item.estado).label}
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class="empty-state animate-fade-in-up">
+          <Icon name="clipboard" size={48} />
+          <h3>No hay eventos</h3>
+          <p>No se encontraron donaciones ni entregas con los filtros seleccionados.</p>
+          <a href="/historial" class="btn btn-primary">Ver todo el historial</a>
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div class="pagination">
+          {page > 1 && (
+            <a href={`${baseUrl}?page=${page - 1}`} class="btn btn-ghost btn-sm">&larr; Anterior</a>
+          )}
+          <span class="page-info">Pagina {page} de {totalPages}</span>
+          {page < totalPages && (
+            <a href={`${baseUrl}?page=${page + 1}`} class="btn btn-ghost btn-sm">Siguiente &rarr;</a>
+          )}
+        </div>
+      )}
+    </div>
+  </main>
+
+  <Footer />
+</Layout>
+
+<style>
+  .main-content { padding-top: 72px; padding-bottom: 80px; }
+
+  .page-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
+  .header-icon { width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; background: var(--green-lighter); color: var(--green-primary); border-radius: var(--radius-lg); flex-shrink: 0; }
+  .page-header h1 { font-size: 1.8rem; color: var(--green-dark); margin: 0; }
+  .header-subtitle { color: var(--text-muted); margin: 4px 0 0; font-size: 0.95rem; }
+
+  .filters-bar { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border-light); padding: 20px 24px; margin-bottom: 24px; box-shadow: var(--shadow-sm); }
+  .filters-form { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+  .filter-group { display: flex; flex-direction: column; gap: 6px; }
+  .filter-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .filter-input-wrap { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 0 12px; height: 40px; }
+  .filter-input-wrap :global(svg) { color: var(--text-light); flex-shrink: 0; }
+  .filter-input { border: none; background: none; outline: none; font-size: 0.9rem; color: var(--text); width: 200px; }
+  .filter-select { height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); font-size: 0.9rem; color: var(--text); cursor: pointer; }
+  .filter-date { height: 40px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); font-size: 0.9rem; color: var(--text); }
+
+  .timeline-summary { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; padding: 0 4px; }
+  .summary-total { font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
+  .summary-legend { display: flex; gap: 20px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-dot.donacion { background: var(--green-primary); }
+  .legend-dot.entrega { background: var(--blue); }
+
+  .timeline { display: flex; flex-direction: column; gap: 0; }
+
+  .timeline-item { display: flex; gap: 20px; }
+  .timeline-item:last-child .timeline-line { display: none; }
+
+  .timeline-connector { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 40px; }
+  .timeline-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 1; }
+  .timeline-dot.donacion { background: var(--green-primary); color: white; }
+  .timeline-dot.entrega { background: var(--blue); color: white; }
+  .timeline-line { width: 2px; flex: 1; background: var(--border-light); margin: 4px 0; }
+
+  .timeline-card { flex: 1; background: var(--surface); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 16px; box-shadow: var(--shadow-sm); transition: all 0.3s ease; }
+  .timeline-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+  .timeline-item.donacion .timeline-card { border-left: 3px solid var(--green-primary); }
+  .timeline-item.entrega .timeline-card { border-left: 3px solid var(--blue); }
+
+  .card-header { margin-bottom: 12px; }
+  .card-type-badge { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .type-badge { padding: 3px 10px; border-radius: 100px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+  .type-badge.donacion { background: var(--green-lighter); color: var(--green-primary); }
+  .type-badge.entrega { background: var(--blue-light); color: var(--blue); }
+  .card-date { font-size: 0.85rem; color: var(--text); font-weight: 500; }
+  .card-time-relative { font-size: 0.8rem; color: var(--text-light); }
+
+  .card-title { font-size: 1rem; color: var(--text); margin: 0 0 12px; font-weight: 600; }
+
+  .card-items { display: flex; flex-direction: column; gap: 8px; }
+  .card-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg); border-radius: var(--radius-md); gap: 12px; }
+  .item-info { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+  .item-name { font-size: 0.9rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item-qty { font-size: 0.85rem; font-weight: 600; color: var(--green-primary); white-space: nowrap; }
+  .item-badge { padding: 2px 8px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+  .item-badge.badge-success { background: #dcfce7; color: #166534; }
+  .item-badge.badge-warning { background: #fef9c3; color: #854d0e; }
+  .item-badge.badge-danger { background: #fee2e2; color: #991b1b; }
+
+  .empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+  .empty-state :global(svg) { margin-bottom: 16px; opacity: 0.4; }
+  .empty-state h3 { font-size: 1.2rem; margin: 0 0 8px; color: var(--text); }
+  .empty-state p { margin: 0 0 24px; }
+  .empty-state .btn { display: inline-flex; align-items: center; gap: 8px; }
+
+  .pagination { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 32px; }
+  .page-info { font-size: 0.9rem; color: var(--text-muted); }
+
+  @media (max-width: 768px) {
+    .filters-form { flex-direction: column; align-items: stretch; }
+    .filter-input { width: 100%; }
+    .timeline-connector { width: 30px; }
+    .timeline-dot { width: 28px; height: 28px; }
+    .timeline-card { padding: 16px; }
+    .card-item { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .card-type-badge { gap: 8px; }
+  }
+</style>
